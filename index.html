@@ -1,0 +1,437 @@
+<!-- React CDN -->
+<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+
+<!-- Other CDNs -->
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/6.26.0/babel.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+  integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA=="
+  crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+<body class="bg-gray-100">
+  <div id="search" class="container mx-auto px-4 py-8 mt-10"></div>
+
+  <script type="text/babel">
+    const baseUrl = "https://us-central1-skillair-1.cloudfunctions.net";
+
+    function App() {
+      const [showSkillDetails, setShowSkillDetails] = React.useState(false);
+      const [selectedSkillId, setSelectedSkillId] = React.useState(null);
+      const [showSearchResults, setShowSearchResults] = React.useState(true);
+
+      const handleSelectSkill = (id) => {
+        setSelectedSkillId(id);
+        setShowSkillDetails(true);
+        setShowSearchResults(false);
+      };
+
+      const handleSearchBoxClick = () => {
+        setShowSearchResults(true);
+      };
+
+      const appContainerRef = React.useRef(null);
+
+      const handleClickOutside = (event) => {
+        if (appContainerRef.current && !appContainerRef.current.contains(event.target)) {
+          setShowSearchResults(false);
+        }
+      };
+
+      React.useEffect(() => {
+        document.addEventListener('click', handleClickOutside);
+        return () => {
+          document.removeEventListener('click', handleClickOutside);
+        };
+      }, []);
+
+      return (
+        <div ref={appContainerRef} className="w-1/2 mx-auto">
+          <div id="search" className="container mx-auto px-4 py-8 mt-10">
+            <h1 className="text-3xl font-bold mb-4 text-center text-materialPurple">
+              Skill Search
+            </h1>
+            <SearchBox
+              handleSelectSkill={handleSelectSkill}
+              showSearchResults={showSearchResults}
+              onSearchBoxClick={handleSearchBoxClick}
+            />
+            {showSkillDetails && <Details selectedSkillId={selectedSkillId} baseUrl={baseUrl} />}
+          </div>
+        </div>
+      );
+    }
+
+    function SearchResult({ image, name, id, handleSelectSkill }) {
+
+      const handleClick = () => {
+        handleSelectSkill(id);
+      };
+
+      return (
+        <tr className="cursor-pointer hover:bg-gray-200 text-fontColor hover:text-neonPink" onClick={handleClick}>
+          <td className="p-2">
+            <img src={image} alt="Result" className="w-24 h-24 rounded-full" />
+          </td>
+          <td className="p-2">{name}</td>
+          <td>
+            <i className="fa-solid fa-chevron-right"></i>
+          </td>
+        </tr>
+      );
+    }
+
+
+    function Filter() {
+      const [showOptions, setShowOptions] = React.useState(false);
+
+      const toggleOptions = () => {
+        setShowOptions(!showOptions);
+      };
+
+      const filterOptions = [
+        { label: "Option 1", onClick: () => console.log("Option 1 clicked") },
+        { label: "Option 2", onClick: () => console.log("Option 2 clicked") },
+        { label: "Option 3", onClick: () => console.log("Option 3 clicked") },
+      ];
+
+      return (
+        <div className="relative">
+          <button
+            className="flex justify-between items-center w-full border bg-neonPink text-white border-gray-300 rounded-md py-2 px-4 focus:outline-none focus:border-gray-300"
+            onClick={toggleOptions}
+          >
+            <span>Filter</span>
+            <i className="fa-solid fa-filter text-white-400"></i>
+          </button>
+          {showOptions && <Modal onClose={toggleOptions} options={filterOptions} />}
+        </div>
+      );
+    }
+
+    function SearchBox({ handleSelectSkill, showSearchResults, onSearchBoxClick }) {
+      const [searchText, setSearchText] = React.useState("");
+      const [results, setResults] = React.useState([]);
+      const [loading, setLoading] = React.useState(false);
+      const [displayCount, setDisplayCount] = React.useState(10);
+
+      const handleChange = (e) => {
+        const searchText = e.target.value;
+        setSearchText(searchText);
+        setResults([]);
+        setDisplayCount(10);
+
+        if (searchText.trim().length >= 3) {
+          fetchResults(searchText);
+        }
+      };
+
+
+      function loadMoreResults() {
+        setTimeout(() => {
+          setDisplayCount(prevDisplayCount => prevDisplayCount + 10);
+        }, 600);
+      }
+
+      const fetchResults = (searchText) => {
+        setLoading(true);
+
+        const requestBody = {
+          text: searchText
+        };
+
+        fetch(`${baseUrl}/search`, {
+          method: "post",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify(requestBody)
+        })
+          .then(response => {
+            if (!response.ok) {
+              throw new Error('Network response was not ok');
+            }
+            return response.json();
+          })
+          .then(data => {
+            setResults(data);
+            setLoading(false);
+          })
+          .catch(error => {
+            setLoading(false);
+            swal.fire({
+              title: 'Error',
+              text: 'An error occurred while fetching results',
+              icon: 'error'
+            });
+          });
+      };
+
+      const handleScroll = () => {
+        const scrollTop = (document.documentElement && document.documentElement.scrollTop) || document.body.scrollTop;
+        const scrollHeight = (document.documentElement && document.documentElement.scrollHeight) || document.body.scrollHeight;
+        const clientHeight = document.documentElement.clientHeight || window.innerHeight;
+        const scrolledToBottom = Math.ceil(scrollTop + clientHeight) >= scrollHeight;
+
+        if (scrolledToBottom && !loading) {
+          loadMoreResults();
+        }
+      };
+
+
+      return (
+        <div className="relative">
+          <div className="flex justify-between items-center mb-4" onClick={onSearchBoxClick}>
+            <div className="relative">
+              <span className="absolute inset-y-0 left-0 flex items-center pl-3">
+                <i className="fa-solid fa-search text-neonPink"></i>
+              </span>
+            </div>
+            <input
+              name="searchBar"
+              type="text"
+              className="w-full border border-gray-300 rounded-md py-2 px-10 pr-4 pl-10 focus:outline-none focus:border-gray-300"
+              value={searchText}
+              onChange={handleChange}
+              placeholder="Search"
+            />
+            <Filter />
+          </div>
+
+          {showSearchResults && (
+            <div
+              id="results-container"
+              className="-mt-3 w-full absolute bg-white rounded-md  shadow-lg overflow-hidden z-10"
+              style={{
+                maxHeight: "557px",
+                overflowY: "scroll",
+                scrollbarWidth: "none",
+              }}
+              onScroll={handleScroll}
+            >
+              <table className="w-full">
+                <tbody>
+                  {results.slice(0, displayCount).map((item, index) => (
+                    <SearchResult
+                      key={index}
+                      image={item.image}
+                      name={item.name}
+                      id={item.id}
+                      handleSelectSkill={handleSelectSkill}
+                    />
+                  ))}
+                </tbody>
+              </table>
+              {loading && (
+                <div>
+                  <div className="text-center text-neonPink">
+                    <i className="fas fa-spinner fa-spin text-xl"></i>
+                  </div>
+                  <div className="text-center text-neonPink">
+                    <p>Loading...</p>
+                  </div>
+                </div>
+              )}
+              {results.length > displayCount && (
+                <div className="animate-bounce text-center text-neonPink">
+                  <i className="fas fa-chevron-down text-xl"></i>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    function Modal({ isOpen, onClose, options }) {
+      if (!isOpen) return null;
+
+      return (
+        <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex justify-center items-center">
+          <div className="bg-white rounded-lg p-6 w-full max-w-sm">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-lg font-semibold">Filters</h2>
+              <div className="flex space-x-4">
+                <button type="button" className="text-red-500" onClick={onClose}>
+                  Reset
+                </button>
+                <button onClick={onClose}>Done</button>
+              </div>
+            </div>
+            <div className="divide-y divide-gray-200">
+              {options.map((option, index) => (
+                <button
+                  type="button"
+                  key={index}
+                  className="flex justify-between items-center py-3 block text-gray-700"
+                  onClick={() => {
+                    option.onClick();
+                    onClose();
+                  }}
+                >
+                  <span className="flex-grow">{option.label}</span>
+                  <i className="fa-solid fa-chevron-right text-gray-400"></i>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+
+    function Details({ selectedSkillId, baseUrl }) {
+      const [data, setData] = React.useState({ category: {} });
+      const [imageUrls, setImageUrls] = React.useState([]);
+
+      React.useEffect(() => {
+        fetch(`${baseUrl}/getOne?id=${selectedSkillId}`)
+          .then(response => {
+            if (!response.ok) {
+              throw new Error('Network response was not ok');
+            }
+            return response.json();
+          })
+          .then(data => {
+            setData(data);
+          })
+          .catch(error => {
+            swal.fire({
+              title: 'Error',
+              text: 'An error occurred while fetching details',
+              icon: 'error'
+            });
+          });
+
+        fetch(`${baseUrl}/getSkillImages?id=${selectedSkillId}`)
+          .then(response => {
+            if (!response.ok) {
+              throw new Error('Network response was not ok');
+            }
+            return response.json();
+          })
+          .then(data => {
+            setImageUrls(data);
+          })
+          .catch(error => {
+            swal.fire({
+              title: 'Error',
+              text: 'An error occurred while fetching images',
+              icon: 'error'
+            });
+          });
+
+        return () => {
+          setData({ category: {} });
+          setImageUrls([]);
+        };
+      }, [selectedSkillId, baseUrl]);
+
+      const { name, category, amount, rate, duration, delivery_method_online, delivery_method_in_person } = data;
+      const primaryImage = imageUrls.length > 0 ? imageUrls[0].image : undefined;
+      const otherImages = imageUrls.length > 0 ? imageUrls.slice(1) : [];
+
+
+      return (
+        <div className="w-full mx-auto z-10">
+          <div className="grid md:grid-cols-2 items-start max-w-3xl gap-6 mx-auto px-4 py-6">
+            <div className="flex flex-col gap-4">
+              <h1 className="text-3xl font-extrabold text-materialPurple">{category.name}</h1>
+              <div className="flex flex-col gap-2 text-sm leading-loose ">
+
+                <div className="flex flex-col gap-2 text-sm leading-loose">
+                  <p className="text-materialPurple font-extrabold text-lg">{name}</p>
+
+                </div>
+
+                <div className="flex flex-col gap-2 text-sm leading-loose mt-10">
+                  <span className="text-materialPurple font-extrabold text-xl">Pricing from</span>
+                  <p className="text-lg text-materialPurple"><span className="text-materialPurple font-extrabold text-xl">
+                    $ {amount}</span> {rate}</p>
+                </div>
+
+              </div>
+              <hr className="border-neonPink" />
+
+              <div>
+                <div className="flex flex-col gap-2 text-sm leading-loose">
+                  <span className="text-materialPurple font-extrabold text-xl">Duration</span>
+                  <p className="text-lg text-materialPurple">
+                    {duration}
+                  </p>
+                </div>
+
+                <div className="flex flex-col gap-2 text-sm leading-loose">
+                  <span className="text-materialPurple font-extrabold text-xl">Online</span>
+                  <p className="text-lg text-materialPurple">
+                    {delivery_method_online ? "Yes" : "No"}
+                  </p>
+                </div>
+
+                <div className="flex flex-col gap-2 text-sm leading-loose">
+                  <span className="text-materialPurple font-extrabold text-xl">In person</span>
+                  <p className="text-lg text-materialPurple">
+                    {delivery_method_in_person ? "Yes" : "No"}
+                  </p>
+                </div>
+
+              </div>
+            </div>
+
+            <div class="grid grid-cols-4 gap-4">
+              <div class="col-span-4 sm:col-span-4">
+                <img
+                  alt="primaryImage"
+                  className="aspect-square ml-3 rounded-lg  w-full overflow-hidden"
+                  height={600}
+                  src={primaryImage}
+                  width={600}
+                />
+              </div>
+
+              {otherImages.map((image, index) => (
+                <div class="col-span-4 sm:col-span-1" key={index}>
+                  <img
+                    alt="otherImage"
+                    className="aspect-square ml-3 rounded-lg  w-full overflow-hidden"
+                    height={100}
+                    src={image.image}
+                    width={100}
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="flex flex-col gap-4">
+            <h2 className="text-2xl font-extrabold text-materialPurple">Description</h2>
+            <p className="text-lg text-materialPurple">{category.description}</p>
+          </div>
+        </div>
+      );
+    }
+
+
+
+    ReactDOM.render(<App />, document.getElementById("search"));
+  </script>
+  <script>
+    tailwind.config = {
+      theme: {
+        fontFamily: {
+          sans: ["Montserrat", "sans-serif"],
+        },
+        extend: {
+          colors: {
+            neonPink: "#fe0198",
+            materialPurple: "#47277b",
+            fontColor: "#857a98"
+          },
+          animation: {
+            bounce: 'bounce 1s infinite'
+          }
+        },
+      },
+    };
+  </script>
+</body>
