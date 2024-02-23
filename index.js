@@ -37,7 +37,7 @@ function App() {
     <div ref={appContainerRef} className="w-1/2 mx-auto">
       <div id="search" className="container mx-auto px-4 py-8 mt-10">
         <h1 className="text-3xl font-bold mb-4 text-center text-materialPurple">
-          Skill Search edit
+          Skill Search
         </h1>
         <SearchBox
           handleSelectSkill={handleSelectSkill}
