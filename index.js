@@ -418,7 +418,7 @@ function Details({ selectedSkillId, baseUrl }) {
                 <span className="text-materialPurple font-extrabold text-xl">
                  $ {amount+ " "}
                 </span>
-                 {rate.replace(/_/g, ' ')} {rate.replace(/_/g, ' ')}
+                 {rate.replace(/_/g, ' ')}
               </p>
             </div>
           </div>
