@@ -17,22 +17,6 @@ function App() {
 
   const appContainerRef = React.useRef(null);
 
-  const handleClickOutside = (event) => {
-    if (
-      appContainerRef.current &&
-      !appContainerRef.current.contains(event.target)
-    ) {
-      setShowSearchResults(false);
-    }
-  };
-
-  React.useEffect(() => {
-    document.addEventListener("click", handleClickOutside);
-    return () => {
-      document.removeEventListener("click", handleClickOutside);
-    };
-  }, []);
-
   return (
     <div ref={appContainerRef} className="w-1/2 mx-auto">
       <div id="search" className="container mx-auto px-4 py-8 mt-10">
@@ -63,7 +47,7 @@ function SearchResult({ image, name, id, handleSelectSkill }) {
       onClick={handleClick}
     >
       <td className="p-2">
-        <img src={image} alt="Result" className="w-24 h-24 rounded-full" />
+        <img src={image} alt="Result" className="w-16 h-16 rounded-full" />
       </td>
       <td className="p-2">{name}</td>
       <td>
@@ -117,10 +101,21 @@ function SearchBox({ handleSelectSkill, showSearchResults, onSearchBoxClick }) {
     }
   };
 
+  const handleFocus = () => {
+    onSearchBoxClick(); // Show results when focused
+  };
+
+  const handleBlur = () => {
+    // Hide results when blurred and no text is entered
+    if (!searchText.trim()) {
+      onSearchBoxClick();
+    }
+  };
+
   function loadMoreResults() {
     setTimeout(() => {
       setDisplayCount((prevDisplayCount) => prevDisplayCount + 10);
-    }, 600);
+    }, 800);
   }
 
   const fetchResults = (searchText) => {
@@ -188,12 +183,14 @@ function SearchBox({ handleSelectSkill, showSearchResults, onSearchBoxClick }) {
         <input
           name="searchBar"
           type="text"
-          className="w-full border border-gray-300 rounded-md py-2 px-10 pr-4 pl-10 focus:outline-none focus:border-gray-300"
+          className="w-full border border-gray-300 rounded-md py-2 px-10 pr-4 pl-10 focus:outline-none focus:border-neonPink"
           value={searchText}
           onChange={handleChange}
+          onFocus={handleFocus}
+          onBlur={handleBlur}
           placeholder="Search"
         />
-        <Filter />
+        {/* <Filter /> */}
       </div>
 
       {showSearchResults && (
@@ -201,7 +198,7 @@ function SearchBox({ handleSelectSkill, showSearchResults, onSearchBoxClick }) {
           id="results-container"
           className="-mt-3 w-full absolute bg-white rounded-md  shadow-lg overflow-hidden z-10"
           style={{
-            maxHeight: "557px",
+            maxHeight: "44vh",
             overflowY: "scroll",
             scrollbarWidth: "none",
           }}
@@ -280,8 +277,11 @@ function Modal({ isOpen, onClose, options }) {
 function Details({ selectedSkillId, baseUrl }) {
   const [data, setData] = React.useState({ category: {} });
   const [imageUrls, setImageUrls] = React.useState([]);
+  const [loading, setLoading] = React.useState(true);
+  const [currentImageIndex, setCurrentImageIndex] = React.useState(0);
 
   React.useEffect(() => {
+    setLoading(true);
     fetch(`${baseUrl}/getOne?id=${selectedSkillId}`)
       .then((response) => {
         if (!response.ok) {
@@ -308,7 +308,9 @@ function Details({ selectedSkillId, baseUrl }) {
         return response.json();
       })
       .then((data) => {
-        setImageUrls(data);
+        const urls = data.map((image) => image.image);
+        setImageUrls(urls);
+        setLoading(false);
       })
       .catch((error) => {
         swal.fire({
@@ -324,6 +326,11 @@ function Details({ selectedSkillId, baseUrl }) {
     };
   }, [selectedSkillId, baseUrl]);
 
+  const handleSelectImage = (index) => {
+    setCurrentImageIndex(index);
+    console.log("currentImageIndex", imageUrls[currentImageIndex]);
+  };
+
   const {
     name,
     category,
@@ -333,8 +340,61 @@ function Details({ selectedSkillId, baseUrl }) {
     delivery_method_online,
     delivery_method_in_person,
   } = data;
-  const primaryImage = imageUrls.length > 0 ? imageUrls[0].image : undefined;
-  const otherImages = imageUrls.length > 0 ? imageUrls.slice(1) : [];
+
+  if (loading) {
+    return (
+      <div className="w-full mx-auto z-10 animate-pulse">
+        <div className="grid md:grid-cols-2 items-start max-w-3xl gap-6 mx-auto px-4 py-6">
+          <div className="flex flex-col gap-4">
+            <h1 className="text-3xl font-extrabold bg-gray-300 h-8 rounded"></h1>
+            <div className="flex flex-col gap-2 text-sm leading-loose ">
+              <div className="flex flex-col gap-2 text-sm leading-loose">
+                <p className="text-materialPurple font-extrabold text-lg bg-gray-300 h-6 rounded"></p>
+              </div>
+              <div className="flex flex-col gap-2 text-sm leading-loose mt-10">
+                <span className="text-materialPurple font-extrabold text-xl bg-gray-300 h-6 rounded"></span>
+                <p className="text-lg text-materialPurple bg-gray-300 h-6 rounded"></p>
+              </div>
+            </div>
+            <hr className="border-neonPink" />
+            <div>
+              <div className="flex flex-col gap-2 text-sm leading-loose">
+                <span className="text-materialPurple font-extrabold text-xl bg-gray-300 h-6 rounded"></span>
+                <p className="text-lg text-materialPurple bg-gray-300 h-6 rounded"></p>
+              </div>
+              <div className="flex flex-col gap-2 text-sm leading-loose">
+                <span className="text-materialPurple font-extrabold text-xl bg-gray-300 h-6 rounded"></span>
+                <p className="text-lg text-materialPurple bg-gray-300 h-6 rounded"></p>
+              </div>
+              <div className="flex flex-col gap-2 text-sm leading-loose">
+                <span className="text-materialPurple font-extrabold text-xl bg-gray-300 h-6 rounded"></span>
+                <p className="text-lg text-materialPurple bg-gray-300 h-6 rounded"></p>
+              </div>
+            </div>
+            <hr className="border-neonPink" />
+            <div className="grid grid-cols-4 gap-4">
+              <h2 className="text-2xl font-extrabold text-materialPurple bg-gray-300 h-8 rounded"></h2>
+              <p className="text-lg text-materialPurple bg-gray-300 h-6 rounded"></p>
+            </div>
+          </div>
+          <div className="grid grid-cols-4 gap-4">
+            <div className="col-span-4 sm:col-span-4">
+              <div className="aspect-square ml-3 rounded-lg bg-gray-300"></div>
+            </div>
+            <div className="col-span-4 sm:col-span-1">
+              <div className="aspect-square ml-3 rounded-lg bg-gray-300"></div>
+            </div>
+            <div className="col-span-4 sm:col-span-1">
+              <div className="aspect-square ml-3 rounded-lg bg-gray-300"></div>
+            </div>
+            <div className="col-span-4 sm:col-span-1">
+              <div className="aspect-square ml-3 rounded-lg bg-gray-300"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full mx-auto z-10">
@@ -357,7 +417,7 @@ function Details({ selectedSkillId, baseUrl }) {
               <p className="text-lg text-materialPurple">
                 <span className="text-materialPurple font-extrabold text-xl">
                   $ {amount}
-                </span>{" "}
+                </span>
                 {rate}
               </p>
             </div>
@@ -390,37 +450,45 @@ function Details({ selectedSkillId, baseUrl }) {
               </p>
             </div>
           </div>
+
+          <hr className="border-neonPink" />
+
+          <div className="grid grid-cols-4 gap-4">
+            <h2 className="text-2xl font-extrabold text-materialPurple">
+              Description
+            </h2>
+            <p className="text-lg text-materialPurple">
+              {category.description}
+            </p>
+          </div>
         </div>
 
         <div class="grid grid-cols-4 gap-4">
           <div class="col-span-4 sm:col-span-4">
             <img
               alt="primaryImage"
-              className="aspect-square ml-3 rounded-lg  w-full overflow-hidden"
+              className="aspect-square ml-3 rounded-lg  w-full overflow-hidden shadow-lg"
               height={600}
-              src={primaryImage}
+              src={imageUrls[currentImageIndex]}
               width={600}
             />
           </div>
 
-          {otherImages.map((image, index) => (
+          {imageUrls.map((image, index) => (
             <div class="col-span-4 sm:col-span-1" key={index}>
               <img
                 alt="otherImage"
-                className="aspect-square ml-3 rounded-lg  w-full overflow-hidden"
+                className="aspect-square ml-3 rounded-lg  w-full overflow-hidden cursor-pointer shadow-lg"
                 height={100}
-                src={image.image}
+                src={image}
                 width={100}
+                onClick={() => {
+                  handleSelectImage(index);
+                }}
               />
             </div>
           ))}
         </div>
-      </div>
-      <div className="flex flex-col gap-4">
-        <h2 className="text-2xl font-extrabold text-materialPurple">
-          Description
-        </h2>
-        <p className="text-lg text-materialPurple">{category.description}</p>
       </div>
     </div>
   );
