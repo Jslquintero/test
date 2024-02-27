@@ -339,6 +339,7 @@ function Details({ selectedSkillId, baseUrl }) {
     duration,
     delivery_method_online,
     delivery_method_in_person,
+    description,
   } = data;
 
   if (loading) {
@@ -372,9 +373,9 @@ function Details({ selectedSkillId, baseUrl }) {
               </div>
             </div>
             <hr className="border-neonPink" />
-            <div className="grid grid-cols-4 gap-4">
-              <h2 className="text-2xl font-extrabold text-materialPurple bg-gray-300 h-8 rounded"></h2>
-              <p className="text-lg text-materialPurple bg-gray-300 h-6 rounded"></p>
+            <div className="grid gap-4">
+              <h2 className="text-2xl font-extrabold text-materialPurple"></h2>
+              <p className="text-lg text-materialPurple"></p>
             </div>
           </div>
           <div className="grid grid-cols-4 gap-4">
@@ -453,13 +454,11 @@ function Details({ selectedSkillId, baseUrl }) {
 
           <hr className="border-neonPink" />
 
-          <div className="grid grid-cols-4 gap-4">
+          <div className="grid gap-4">
             <h2 className="text-2xl font-extrabold text-materialPurple">
               Description
             </h2>
-            <p className="text-lg text-materialPurple">
-              {category.description}
-            </p>
+            <p className="text-lg text-materialPurple">{description}</p>
           </div>
         </div>
 
