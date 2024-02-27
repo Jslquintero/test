@@ -218,7 +218,7 @@ function SearchBox({ handleSelectSkill, showSearchResults, onSearchBoxClick }) {
             </tbody>
           </table>
           {loading && (
-            <div>
+            <div className="animate-pulse">
               <div className="text-center text-neonPink">
                 <i className="fas fa-spinner fa-spin text-xl"></i>
               </div>
@@ -430,7 +430,9 @@ function Details({ selectedSkillId, baseUrl }) {
               <span className="text-materialPurple font-extrabold text-xl">
                 Duration
               </span>
-              <p className="text-lg text-materialPurple">{duration}</p>
+              <p className="text-lg text-materialPurple">
+                {duration !== 0 ? duration : "-"}
+              </p>
             </div>
 
             <div className="flex flex-col gap-2 text-sm leading-loose">
