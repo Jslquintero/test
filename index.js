@@ -73,13 +73,40 @@ function SearchBox({
     setResultsOpen(true);
   };
 
-  const FilterBadge = ({ label, value, resetFilter }) => {
+  const FilterBadge = ({ label, value }) => {
     const [isVisible, setIsVisible] = useState(!!value);
 
     const handleRemove = () => {
+      onBadgeFilterRemove();
       setIsVisible(false);
-      resetFilter();
       setResultsOpen(true);
+    };
+
+    const onBadgeFilterRemove = () => {
+      switch (label) {
+        case "Location":
+          setLocation("");
+          setFilters({ ...filters, location: null });
+          break;
+        case "Category":
+          setCategory("");
+          setFilters({ ...filters, category: null });
+          break;
+        case "Rate":
+          setRate("");
+          setFilters({ ...filters, rate: "" });
+          break;
+        case "Delivery":
+          setSelectedDeliveryOption({});
+          setFilters({
+            ...filters,
+            deliveryOnline: false,
+            deliveryInPerson: false,
+          });
+          break;
+        default:
+          break;
+      }
     };
 
     if (isVisible) {
@@ -148,19 +175,14 @@ function SearchBox({
           <FilterBadge
             label="Location"
             value={filters.location?.city ? filters.location.city : ""}
-            resetFilter={() => setFilters({ ...filters, location: null })}
           />
           <FilterBadge
             label="Category"
             value={filters.category ? filters.category.name : ""}
-            resetFilter={() => setFilters({ ...filters, category: null })}
           />
           <FilterBadge
             label="Rate"
             value={filters.rate ? filters.rate.replace(/_/g, " ") : ""}
-            resetFilter={() => {
-              setFilters({ ...filters, rate: "" });
-            }}
           />
           <FilterBadge
             label="Delivery"
@@ -172,13 +194,6 @@ function SearchBox({
                 : filters.deliveryInPerson
                 ? "In Person"
                 : ""
-            }
-            resetFilter={() =>
-              setFilters({
-                ...filters,
-                deliveryOnline: false,
-                deliveryInPerson: false,
-              })
             }
           />
         </div>
@@ -259,15 +274,10 @@ function SearchResults({
     const fetchResults = async (searchText) => {
       setLoading(true);
 
-      if (location !== null) {
-        searchText = "";
-      }
-
       const requestBody = {
         text: searchText,
         categoryId:
           filters.category && filters.category.id ? filters.category.id : "",
-
         deliveryInPerson: filters.deliveryInPerson || false,
         deliveryOnline: filters.deliveryOnline || false,
         rate: filters.rate || "",
@@ -288,6 +298,8 @@ function SearchResults({
           // signal: controller.signal,
         });
 
+        // console.log(requestBody);
+
         if (!response.ok) {
           throw new Error("Network response was not ok");
         }
@@ -306,11 +318,11 @@ function SearchResults({
       }
     };
 
-    // if (searchText.trim().length >= 3) {
-    //   fetchResults(searchText);
-    // }
+    if (searchText.trim().length >= 3) {
+      fetchResults(searchText);
+    }
 
-    fetchResults(searchText);
+    // fetchResults(searchText);
 
     return () => controller.abort();
   }, [searchText, filters]);
@@ -320,20 +332,20 @@ function SearchResults({
       handleResultClick(id);
     };
 
-    return (
-      <tr
-        className="cursor-pointer hover:bg-gray-200 text-fontColor hover:text-neonPink"
-        onClick={handleClick}
-      >
-        <td className="p-2">
-          <img src={image} alt="Result" className="w-16 h-16 rounded-full" />
-        </td>
-        <td className="p-2">{name}</td>
-        <td>
-          <i className="fa-solid fa-chevron-right"></i>
-        </td>
-      </tr>
-    );
+     return (
+       <tr
+         className="cursor-pointer hover:bg-gray-200 text-fontColor hover:text-neonPink"
+         onClick={handleClick}
+       >
+         <td className="p-2">
+           <img src={image} alt="Result" className="w-16 h-16 rounded-full" />
+         </td>
+         <td className="p-2">{name}</td>
+         <td>
+           <i className="fa-solid fa-chevron-right"></i>
+         </td>
+       </tr>
+     );
   };
 
   return (
@@ -695,6 +707,7 @@ function FilterModal({
       maxPrice,
       ...selectedDeliveryOption,
     });
+    setSelectedFilter(null);
     handleDoneClick();
   };
 
