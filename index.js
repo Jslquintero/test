@@ -9,7 +9,7 @@ function App() {
     <div className="w-1/2 mx-auto">
       <div id="search" className="container mx-auto px-4 py-8 mt-10">
         <h1 className="text-3xl font-bold mb-4 text-center text-materialPurple">
-          Skill Search
+          Find Skills
         </h1>
         <SearchBox
           setSelectedSkillId={setSelectedSkillId}
@@ -136,9 +136,9 @@ function SearchBox({
   };
 
   return (
-    <div className="relative grid grid-cols-1 gap-2">
-      <div className="grid grid-cols-6 gap-2">
-        <div className="col-span-5">
+    <div className="relative ">
+      <div className="grid grid-cols-3 gap-1">
+        <div className="col-span-2">
           <SearchInput
             searchText={searchText}
             setSearchText={setSearchText}
@@ -616,7 +616,7 @@ function Filter({
   ];
 
   return (
-    <div>
+    <div className="grid">
       <button
         type="button"
         className="flex justify-between items-center w-full border bg-neonPink text-white border-gray-300 rounded-md py-2 px-4 focus:outline-none focus:border-gray-300"
