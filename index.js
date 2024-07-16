@@ -338,11 +338,17 @@ function SearchResults({
         onClick={handleClick}
       >
         <td className="p-2">
-          <img src={image} alt="Result" className="w-16 h-16 rounded-full" />
+          <img
+            src={image}
+            alt="Result"
+            className="w-15 h-10  md:w-24 h-16 rounded-full"
+          />
         </td>
-        <td className="p-2">{name}</td>
-        <td>
-          <i className="fa-solid fa-chevron-right"></i>
+        <td className="p-2 text-xs md:text-xl">
+          <div className="grid grid-cols-2">
+            <span>{name}</span>
+            <i className="fa-solid fa-chevron-right text-right"></i>
+          </div>
         </td>
       </tr>
     );
