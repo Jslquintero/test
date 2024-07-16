@@ -6,7 +6,7 @@ function App() {
   const [filters, setFilters] = useState({});
 
   return (
-    <div className="w-1/2 mx-auto">
+    <div className="w-full max-w-screen-sm  mx-auto">
       <div id="search" className="container mx-auto px-4 py-8 mt-10">
         <h1 className="text-3xl font-bold mb-4 text-center text-materialPurple">
           Find Skills
@@ -332,20 +332,20 @@ function SearchResults({
       handleResultClick(id);
     };
 
-     return (
-       <tr
-         className="cursor-pointer hover:bg-gray-200 text-fontColor hover:text-neonPink"
-         onClick={handleClick}
-       >
-         <td className="p-2">
-           <img src={image} alt="Result" className="w-16 h-16 rounded-full" />
-         </td>
-         <td className="p-2">{name}</td>
-         <td>
-           <i className="fa-solid fa-chevron-right"></i>
-         </td>
-       </tr>
-     );
+    return (
+      <tr
+        className="cursor-pointer hover:bg-gray-200 text-fontColor hover:text-neonPink"
+        onClick={handleClick}
+      >
+        <td className="p-2">
+          <img src={image} alt="Result" className="w-16 h-16 rounded-full" />
+        </td>
+        <td className="p-2">{name}</td>
+        <td>
+          <i className="fa-solid fa-chevron-right"></i>
+        </td>
+      </tr>
+    );
   };
 
   return (
