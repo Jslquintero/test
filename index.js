@@ -494,96 +494,97 @@ function Details({ selectedSkillId }) {
 
   return (
     <div className="w-full mx-auto z-10">
-      <div className="grid md:grid-cols-2 items-start max-w-5xl gap-6 mx-auto px-4 py-6">
-        <div className="flex flex-col gap-4">
-          <h1 className="text-3xl font-extrabold text-materialPurple">
-            {category.name}
-          </h1>
-          <div className="flex flex-col gap-2 text-sm leading-loose ">
-            <div className="flex flex-col gap-2 text-sm leading-loose">
-              <p className="text-materialPurple font-extrabold text-lg">
-                {name}
-              </p>
-            </div>
+      <div className="grid grid-rows-2">
+        <div className="grid md:grid-cols-2 items-start max-w-5xl gap-6 mx-auto px-4 py-6">
+          <div className="flex flex-col gap-4">
+            <h1 className="text-3xl font-extrabold text-materialPurple">
+              {category.name}
+            </h1>
+            <div className="flex flex-col gap-2 text-sm leading-loose ">
+              <div className="flex flex-col gap-2 text-sm leading-loose">
+                <p className="text-materialPurple font-extrabold text-lg">
+                  {name}
+                </p>
+              </div>
 
-            <div className="flex flex-col gap-2 text-sm leading-loose mt-10">
-              <span className="text-materialPurple font-extrabold text-xl">
-                Pricing from
-              </span>
-              <p className="text-lg text-materialPurple">
+              <div className="flex flex-col gap-2 text-sm leading-loose mt-10">
                 <span className="text-materialPurple font-extrabold text-xl">
-                  $ {amount + " "}
+                  Pricing from
                 </span>
-                {rate.replace(/_/g, " ")}
-              </p>
+                <p className="text-lg text-materialPurple">
+                  <span className="text-materialPurple font-extrabold text-xl">
+                    $ {amount + " "}
+                  </span>
+                  {rate.replace(/_/g, " ")}
+                </p>
+              </div>
+            </div>
+            <hr className="border-materialPurpleOpaque" />
+
+            <div>
+              <div className="flex flex-col gap-2 text-sm leading-loose">
+                <span className="text-materialPurple font-extrabold text-xl">
+                  Duration
+                </span>
+                <p className="text-lg text-materialPurple">
+                  {duration !== 0 ? duration : "-"}
+                </p>
+              </div>
+
+              <div className="flex flex-col gap-2 text-sm leading-loose">
+                <span className="text-materialPurple font-extrabold text-xl">
+                  Online
+                </span>
+                <p className="text-lg text-materialPurple">
+                  {delivery_method_online ? "Yes" : "No"}
+                </p>
+              </div>
+
+              <div className="flex flex-col gap-2 text-sm leading-loose">
+                <span className="text-materialPurple font-extrabold text-xl">
+                  In person
+                </span>
+                <p className="text-lg text-materialPurple">
+                  {delivery_method_in_person ? "Yes" : "No"}
+                </p>
+              </div>
             </div>
           </div>
-          <hr className="border-materialPurpleOpaque" />
-
-          <div>
-            <div className="flex flex-col gap-2 text-sm leading-loose">
-              <span className="text-materialPurple font-extrabold text-xl">
-                Duration
-              </span>
-              <p className="text-lg text-materialPurple">
-                {duration !== 0 ? duration : "-"}
-              </p>
+          <div className="grid grid-cols-4 gap-4">
+            <div className="col-span-4">
+              <img
+                alt="primaryImage"
+                className="aspect-square ml-3 rounded-lg w-full overflow-hidden shadow-lg"
+                height="600"
+                src={imageUrls[currentImageIndex]}
+                width="600"
+              />
             </div>
 
-            <div className="flex flex-col gap-2 text-sm leading-loose">
-              <span className="text-materialPurple font-extrabold text-xl">
-                Online
-              </span>
-              <p className="text-lg text-materialPurple">
-                {delivery_method_online ? "Yes" : "No"}
-              </p>
-            </div>
-
-            <div className="flex flex-col gap-2 text-sm leading-loose">
-              <span className="text-materialPurple font-extrabold text-xl">
-                In person
-              </span>
-              <p className="text-lg text-materialPurple">
-                {delivery_method_in_person ? "Yes" : "No"}
-              </p>
-            </div>
+            {imageUrls.map((image, index) => (
+              <div className="col-span-1 sm:col-span-1" key={index}>
+                <img
+                  alt="otherImage"
+                  className="aspect-square ml-3 rounded-lg w-full overflow-hidden cursor-pointer shadow-lg"
+                  height="100"
+                  src={image}
+                  width="100"
+                  onClick={() => {
+                    handleSelectImage(index);
+                  }}
+                />
+              </div>
+            ))}
           </div>
-
+        </div>
+        <div>
           <hr className="border-materialPurpleOpaque" />
-
-          <div className="grid gap-4">
+          <div className="grid grid-cols-auto gap-4">
             <h2 className="text-2xl font-extrabold text-materialPurple">
               Description
             </h2>
             <p className="text-lg text-materialPurple">{description}</p>
           </div>
-        </div>
-
-        <div className="grid grid-cols-4 gap-4">
-          <div className="col-span-4">
-            <img
-              alt="primaryImage"
-              className="aspect-square ml-3 rounded-lg w-full overflow-hidden shadow-lg"
-              height="600"
-              src={imageUrls[currentImageIndex]}
-              width="600"
-            />
-          </div>
-
-          {imageUrls.map((image, index) => (
-            <div className="col-span-1 sm:col-span-1" key={index}>
-              <img
-                alt="otherImage"
-                className="aspect-square ml-3 rounded-lg w-full overflow-hidden cursor-pointer shadow-lg"
-                height="100"
-                src={image}
-                width="100"
-                onClick={() => {
-                  handleSelectImage(index);
-                }}
-              />
-            </div>
-          ))}
         </div>
       </div>
     </div>
