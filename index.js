@@ -560,24 +560,24 @@ function Details({ selectedSkillId }) {
         </div>
 
         <div class="grid grid-cols-4 gap-4">
-          <div class="col-span-4 sm:col-span-4">
+          <div class="col-span-4">
             <img
               alt="primaryImage"
-              className="aspect-square ml-3 rounded-lg  w-full overflow-hidden shadow-lg"
-              height={600}
+              class="aspect-square ml-3 rounded-lg w-full overflow-hidden shadow-lg"
+              height="600"
               src={imageUrls[currentImageIndex]}
-              width={600}
+              width="600"
             />
           </div>
 
           {imageUrls.map((image, index) => (
-            <div class="col-span-4 sm:col-span-1" key={index}>
+            <div class="col-span-1 sm:col-span-1" key={index}>
               <img
                 alt="otherImage"
-                className="aspect-square ml-3 rounded-lg  w-full overflow-hidden cursor-pointer shadow-lg"
-                height={100}
+                class="aspect-square ml-3 rounded-lg w-full overflow-hidden cursor-pointer shadow-lg"
+                height="100"
                 src={image}
-                width={100}
+                width="100"
                 onClick={() => {
                   handleSelectImage(index);
                 }}
