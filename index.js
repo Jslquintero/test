@@ -341,12 +341,12 @@ function SearchResults({
           <img
             src={image}
             alt="Result"
-            className="w-14 h-14  md:w-16 h-16 rounded-full"
+            className="w-32 h-14  md:w-16 h-16 rounded-full"
           />
         </td>
         <td className="p-2 text-xs md:text-xl">
-          <div className="grid grid-cols-2">
-            <span>{name}</span>
+          <div className="grid grid-cols-3">
+            <span className="col-span-2">{name}</span>
             <i className="fa-solid fa-chevron-right text-right"></i>
           </div>
         </td>
