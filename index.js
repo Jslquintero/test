@@ -494,7 +494,7 @@ function Details({ selectedSkillId }) {
 
   return (
     <div className="w-full mx-auto z-10">
-      <div className="grid md:grid-cols-2 items-start max-w-3xl gap-6 mx-auto px-4 py-6">
+      <div className="grid md:grid-cols-2 items-start max-w-5xl gap-6 mx-auto px-4 py-6">
         <div className="flex flex-col gap-4">
           <h1 className="text-3xl font-extrabold text-materialPurple">
             {category.name}
@@ -559,11 +559,11 @@ function Details({ selectedSkillId }) {
           </div>
         </div>
 
-        <div class="grid grid-cols-4 gap-4">
-          <div class="col-span-4">
+        <div className="grid grid-cols-4 gap-4">
+          <div className="col-span-4">
             <img
               alt="primaryImage"
-              class="aspect-square ml-3 rounded-lg w-full overflow-hidden shadow-lg"
+              className="aspect-square ml-3 rounded-lg w-full overflow-hidden shadow-lg"
               height="600"
               src={imageUrls[currentImageIndex]}
               width="600"
@@ -571,10 +571,10 @@ function Details({ selectedSkillId }) {
           </div>
 
           {imageUrls.map((image, index) => (
-            <div class="col-span-1 sm:col-span-1" key={index}>
+            <div className="col-span-1 sm:col-span-1" key={index}>
               <img
                 alt="otherImage"
-                class="aspect-square ml-3 rounded-lg w-full overflow-hidden cursor-pointer shadow-lg"
+                className="aspect-square ml-3 rounded-lg w-full overflow-hidden cursor-pointer shadow-lg"
                 height="100"
                 src={image}
                 width="100"
