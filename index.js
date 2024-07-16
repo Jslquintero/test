@@ -341,7 +341,7 @@ function SearchResults({
           <img
             src={image}
             alt="Result"
-            className="w-14 h-14 rounded-full"
+            className="w-full max-w-14 h-full max-h-14 rounded-full"
           />
         </td>
         <td className="p-2 text-xs md:text-xl">
