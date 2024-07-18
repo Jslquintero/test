@@ -420,12 +420,12 @@ function SearchResults({
 }
 
 function Details({ selectedSkillId }) {
-  const [data, setData] = React.useState({ category: {} });
-  const [imageUrls, setImageUrls] = React.useState([]);
-  const [loading, setLoading] = React.useState(true);
-  const [currentImageIndex, setCurrentImageIndex] = React.useState(0);
+  const [data, setData] = useState({ category: {} });
+  const [imageUrls, setImageUrls] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
-  React.useEffect(() => {
+  useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
       try {
@@ -631,7 +631,7 @@ function Filter({
   setFilters,
   handleDoneClick,
 }) {
-  const [showOptions, setShowOptions] = React.useState(false);
+  const [showOptions, setShowOptions] = useState(false);
 
   const toggleOptions = () => {
     setShowOptions(!showOptions);
@@ -698,10 +698,10 @@ function FilterOnStartup({
   updateFilters,
   handleDoneClick,
 }) {
-  const [filterName, setFilterName] = React.useState("");
-  const [selectedFilter, setSelectedFilter] = React.useState(null);
+  const [filterName, setFilterName] = useState("");
+  const [selectedFilter, setSelectedFilter] = useState(null);
 
-  const [showOptions, setShowOptions] = React.useState(false);
+  const [showOptions, setShowOptions] = useState(false);
 
   const toggleOptions = () => {
     setShowOptions(!showOptions);
@@ -853,8 +853,8 @@ function FilterModal({
   updateFilters,
   handleDoneClick,
 }) {
-  const [filterName, setFilterName] = React.useState("Filters");
-  const [selectedFilter, setSelectedFilter] = React.useState(null);
+  const [filterName, setFilterName] = useState();
+  const [selectedFilter, setSelectedFilter] = useState(null);
 
   const handleFilterSelect = (filter) => {
     setSelectedFilter(filter);
@@ -1073,7 +1073,7 @@ function CategoryFilter({ category, setCategory }) {
 }
 
 function LocationFilter({ location, setLocation }) {
-  const [locations, setLocations] = React.useState([]);
+  const [locations, setLocations] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
