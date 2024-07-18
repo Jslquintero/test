@@ -766,7 +766,7 @@ function FilterOnStartup({
             <h2 className="text-lg mt-3 font-semibold text-materialPurple">
               {filterName}
             </h2>
-            <div className="grid grid-cols-2 mt-3">
+            <div className="grid grid-cols-2 gap-2 mt-3">
               <button
                 type="button"
                 className="text-neonPinkOpaque text-lg font-semibold"
@@ -815,7 +815,7 @@ function FilterOnStartup({
                 <div className="container text-2xl my-1">
                   <a
                     key={index}
-                    className="grid grid-cols-2 text-materialPurple  cursor-pointer hover:bg-gray-100 transition-colors duration-200"
+                    className="grid grid-cols-[1fr,auto] text-materialPurple  cursor-pointer hover:bg-gray-100 transition-colors duration-200"
                     onClick={() => handleFilterSelect(option.label)}
                   >
                     <span className="mx-2 col-span-1">{option.label}</span>
