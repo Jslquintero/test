@@ -732,7 +732,7 @@ function FilterOnStartup({
 
   const handleBack = () => {
     setSelectedFilter(null);
-    setFilterName("Filters");
+    setFilterName("");
   };
 
   const handleDone = () => {
