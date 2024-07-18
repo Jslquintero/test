@@ -753,7 +753,7 @@ function FilterOnStartup({
     <>
       <div className="grid grid-rows-1 gap-2">
         <div className="h-10">
-          <div className="grid grid-cols-3">
+          <div className="grid grid-cols-[6%,57%,37%]">
             <a
               type="button"
               className="text-materialPurple cursor-pointer"
