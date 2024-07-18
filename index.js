@@ -13,6 +13,7 @@ function App() {
         </h1>
         <SearchBox
           setSelectedSkillId={setSelectedSkillId}
+          selectedSkillId={selectedSkillId}
           filters={filters}
           setFilters={setFilters}
         />
@@ -37,14 +38,12 @@ function SearchBox({
   const inputRef = useRef(null);
   const resultsContainerRef = useRef(null);
 
-  const [location, setLocation] = React.useState("");
-  const [category, setCategory] = React.useState("");
-  const [rate, setRate] = React.useState("");
-  const [minPrice, setMinPrice] = React.useState("");
-  const [maxPrice, setMaxPrice] = React.useState("");
-  const [selectedDeliveryOption, setSelectedDeliveryOption] = React.useState(
-    []
-  );
+  const [location, setLocation] = useState("");
+  const [category, setCategory] = useState("");
+  const [rate, setRate] = useState("");
+  const [minPrice, setMinPrice] = useState("");
+  const [maxPrice, setMaxPrice] = useState("");
+  const [selectedDeliveryOption, setSelectedDeliveryOption] = useState([]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -210,6 +209,29 @@ function SearchBox({
             handleResultClick={handleResultClick}
           />
         )}
+        <div class="">
+          {!selectedSkillId && (
+            <FilterOnStartup
+              location={location}
+              setLocation={setLocation}
+              category={category}
+              setCategory={setCategory}
+              rate={rate}
+              setRate={setRate}
+              minPrice={minPrice}
+              setMinPrice={setMinPrice}
+              maxPrice={maxPrice}
+              setMaxPrice={setMaxPrice}
+              selectedDeliveryOption={selectedDeliveryOption}
+              setSelectedDeliveryOption={setSelectedDeliveryOption}
+              searchText={searchText}
+              setFilters={setFilters}
+              filters={filters}
+              updateFilters={setFilters}
+              handleDoneClick={handleDoneClick}
+            />
+          )}
+        </div>
       </div>
     </div>
   );
@@ -655,6 +677,157 @@ function Filter({
         handleDoneClick={handleDoneClick}
       />
     </div>
+  );
+}
+
+function FilterOnStartup({
+  onClose,
+  location,
+  setLocation,
+  category,
+  setCategory,
+  rate,
+  setRate,
+  minPrice,
+  setMinPrice,
+  maxPrice,
+  setMaxPrice,
+  selectedDeliveryOption,
+  setSelectedDeliveryOption,
+  setFilters,
+  updateFilters,
+  handleDoneClick,
+}) {
+  const [filterName, setFilterName] = React.useState("");
+  const [selectedFilter, setSelectedFilter] = React.useState(null);
+
+  const [showOptions, setShowOptions] = React.useState(false);
+
+  const toggleOptions = () => {
+    setShowOptions(!showOptions);
+  };
+
+  const filterOptions = [
+    { label: "Location" },
+    { label: "Category" },
+    { label: "Price" },
+    { label: "Delivery" },
+  ];
+
+  const handleFilterSelect = (filter) => {
+    setSelectedFilter(filter);
+    setFilterName(`Filter - ${filter}`);
+  };
+
+  const handleReset = () => {
+    setSelectedFilter(null);
+    setLocation("");
+    setCategory("");
+    setRate("");
+    setMinPrice("");
+    setMaxPrice("");
+    setSelectedDeliveryOption({});
+    setFilters({});
+  };
+
+  const handleBack = () => {
+    setSelectedFilter(null);
+    setFilterName("Filters");
+  };
+
+  const handleDone = () => {
+    toggleOptions();
+    updateFilters({
+      location,
+      category,
+      rate,
+      minPrice,
+      maxPrice,
+      ...selectedDeliveryOption,
+    });
+    setSelectedFilter(null);
+    handleDoneClick();
+  };
+
+  return (
+    <>
+      <div className="grid grid-rows-1 gap-2">
+        <div className="h-10">
+          <div className="grid grid-cols-3">
+            <a
+              type="button"
+              className="text-materialPurple cursor-pointer"
+              onClick={handleBack}
+            >
+              {selectedFilter && (
+                <i className="mt-5 fa-solid fa-chevron-left text-neonPink"></i>
+              )}
+            </a>
+            <h2 className="text-lg mt-3 font-semibold text-materialPurple">
+              {filterName}
+            </h2>
+            <div className="grid grid-cols-2 mt-3">
+              <button
+                type="button"
+                className="text-neonPinkOpaque text-lg font-semibold"
+                onClick={handleReset}
+              >
+                Reset
+              </button>
+              <button
+                className="text-neonPink text-lg font-semibold"
+                onClick={handleDone}
+              >
+                Done
+              </button>
+            </div>
+          </div>
+        </div>
+        <div>
+          {selectedFilter ? (
+            <div>
+              {selectedFilter === "Location" && (
+                <LocationFilter location={location} setLocation={setLocation} />
+              )}
+              {selectedFilter === "Category" && (
+                <CategoryFilter category={category} setCategory={setCategory} />
+              )}
+              {selectedFilter === "Price" && (
+                <PriceFilter
+                  rate={rate}
+                  setRate={setRate}
+                  minPrice={minPrice}
+                  setMinPrice={setMinPrice}
+                  maxPrice={maxPrice}
+                  setMaxPrice={setMaxPrice}
+                />
+              )}
+              {selectedFilter === "Delivery" && (
+                <DeliveryFilter
+                  selectedDeliveryOption={selectedDeliveryOption}
+                  setSelectedDeliveryOption={setSelectedDeliveryOption}
+                />
+              )}
+            </div>
+          ) : (
+            <div>
+              {filterOptions.map((option, index) => (
+                <div className="container text-2xl my-1">
+                  <a
+                    key={index}
+                    className="grid grid-cols-2 text-materialPurple  cursor-pointer hover:bg-gray-100 transition-colors duration-200"
+                    onClick={() => handleFilterSelect(option.label)}
+                  >
+                    <span className="mx-2 col-span-1">{option.label}</span>
+                    <i className="text-right fa-solid fa-chevron-right text-neonPink"></i>
+                  </a>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </>
   );
 }
 
