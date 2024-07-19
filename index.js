@@ -1049,7 +1049,7 @@ function CategoryFilter({ category, setCategory }) {
 
   return (
     <div
-      class="min-h-64 md:max-h-full  overflow-y-scroll"
+      class="max-h-128 overflow-y-scroll"
       style={{
         scrollbarColor: "#FD3BB0 transparent",
         scrollbarWidth: "thin",
@@ -1138,7 +1138,7 @@ function LocationFilter({ location, setLocation }) {
 
   return (
     <div
-      class="max-h-64 overflow-y-scroll"
+      class="max-h-128 overflow-y-scroll"
       style={{
         scrollbarWidth: "none",
         scrollbarColor: "transparent transparent",
@@ -1338,6 +1338,9 @@ tailwind.config = {
       },
       animation: {
         bounce: "bounce 1s infinite",
+      },
+      maxHeight: {
+        128: "32rem",
       },
     },
   },
