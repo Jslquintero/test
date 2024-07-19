@@ -113,14 +113,13 @@ function SearchBox({
     if (isVisible) {
       return (
         <>
-          <div className="grid grid-cols-[90%,10%] px-2 py-1 me-2 text-lg font-medium text-white bg-neonPink rounded">
+          <div className="grid grid-cols-[auto,1fr] px-2 py-1 xs:text-xs sm:text-sm md:text-lg font-medium text-white bg-neonPink rounded">
             <span className="text-white">
               {label}: {value}
             </span>
-            <div className="grid grid-cols-2 place-items-center">
               <button
                 type="button"
-                className="p-1 text-lg text-white text-center bg-transparent rounded-sm"
+                className="p-1 xs:text-xs sm:text-sm  md:text-lg text-white text-center bg-transparent rounded-s"
                 data-dismiss-target="#badge-dismiss-filter"
                 aria-label="Remove"
                 onClick={handleRemove}
@@ -128,7 +127,6 @@ function SearchBox({
                 <i className="fa-solid fa-xmark"></i>
                 <span className="sr-only">Remove badge</span>
               </button>
-            </div>
           </div>
         </>
       );
