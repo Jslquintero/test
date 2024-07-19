@@ -1021,8 +1021,7 @@ function CategoryFilter({ category, setCategory }) {
           e.preventDefault();
           handleFilterSelect(categories);
         }}
-        className="flex justify-between py-3 block text-materialPurple w-full max-w-sm cursor-pointer hover:bg-gray-100 transition-colors duration-200"
-        style={{ display: "block" }}
+        className="flex justify-between py-3 text-2xl  text-materialPurple w-full max-w-xl cursor-pointer hover:bg-gray-100 transition-colors duration-200"
       >
         {categories.name}
         <span className="float-right text-white">
@@ -1041,16 +1040,7 @@ function CategoryFilter({ category, setCategory }) {
   if (loading) {
     return (
       <div className="animate-pulse">
-        <div className="flex justify-between py-3 block text-materialPurple w-full max-w-sm cursor-pointer hover:bg-gray-100 transition-colors duration-200">
-          <span className="flex-grow mx-2 bg-gray-300 h-6 rounded"></span>
-        </div>
-        <div className="flex justify-between py-3 block text-materialPurple w-full max-w-sm cursor-pointer hover:bg-gray-100 transition-colors duration-200">
-          <span className="flex-grow mx-2 bg-gray-300 h-6 rounded"></span>
-        </div>
-        <div className="flex justify-between py-3 block text-materialPurple w-full max-w-sm cursor-pointer hover:bg-gray-100 transition-colors duration-200">
-          <span className="flex-grow mx-2 bg-gray-300 h-6 rounded"></span>
-        </div>
-        <div className="flex justify-between py-3 block text-materialPurple w-full max-w-sm cursor-pointer hover:bg-gray-100 transition-colors duration-200">
+        <div className="flex justify-between py-3 text-materialPurple w-full max-w-xl cursor-pointer hover:bg-gray-100 transition-colors duration-200">
           <span className="flex-grow mx-2 bg-gray-300 h-6 rounded"></span>
         </div>
       </div>
@@ -1059,7 +1049,7 @@ function CategoryFilter({ category, setCategory }) {
 
   return (
     <div
-      class="max-h-64 overflow-y-scroll"
+      class="min-h-64 md:max-h-full  overflow-y-scroll"
       style={{
         scrollbarColor: "#FD3BB0 transparent",
         scrollbarWidth: "thin",
@@ -1120,8 +1110,7 @@ function LocationFilter({ location, setLocation }) {
           e.preventDefault();
           handleFilterSelect(value);
         }}
-        className="flex justify-between py-3 block text-materialPurple w-full max-w-sm cursor-pointer hover:bg-gray-100 transition-colors duration-200"
-        style={{ display: "block" }}
+        className="flex justify-between py-3 text-2xl  text-materialPurple w-full max-w-xl cursor-pointer hover:bg-gray-100 transition-colors duration-200"
       >
         {value.city}
         <span className="float-right text-white">
@@ -1139,17 +1128,8 @@ function LocationFilter({ location, setLocation }) {
 
   if (loading) {
     return (
-      <div className="animate-pulse">
-        <div className="flex justify-between py-3 block text-materialPurple w-full max-w-sm cursor-pointer hover:bg-gray-100 transition-colors duration-200">
-          <span className="flex-grow mx-2 bg-gray-300 h-6 rounded"></span>
-        </div>
-        <div className="flex justify-between py-3 block text-materialPurple w-full max-w-sm cursor-pointer hover:bg-gray-100 transition-colors duration-200">
-          <span className="flex-grow mx-2 bg-gray-300 h-6 rounded"></span>
-        </div>
-        <div className="flex justify-between py-3 block text-materialPurple w-full max-w-sm cursor-pointer hover:bg-gray-100 transition-colors duration-200">
-          <span className="flex-grow mx-2 bg-gray-300 h-6 rounded"></span>
-        </div>
-        <div className="flex justify-between py-3 block text-materialPurple w-full max-w-sm cursor-pointer hover:bg-gray-100 transition-colors duration-200">
+      <div className="animate-pulse ">
+        <div className="flex justify-between py-3  text-materialPurple w-full max-w-xl cursor-pointer hover:bg-gray-100 transition-colors duration-200">
           <span className="flex-grow mx-2 bg-gray-300 h-6 rounded"></span>
         </div>
       </div>
@@ -1216,10 +1196,9 @@ function PriceFilter({
           e.preventDefault();
           handleRateChange(value);
         }}
-        className={`text-lg py-3 text-materialPurple border-b-2 border-materialPurpleOpaque ${
+        className={`text-2xl py-3 block text-materialPurple border-b-2 border-materialPurpleOpaque ${
           isSelected ? "border-neonPink text-neonPink" : ""
         }`}
-        style={{ display: "block" }}
       >
         {label}
         <span className="float-right text-white">
@@ -1308,10 +1287,9 @@ function DeliveryFilter({ selectedDeliveryOption, setSelectedDeliveryOption }) {
       <a
         href="#"
         onClick={() => handleDeliveryChange(value)}
-        className={`text-lg py-3 text-materialPurple border-b-2 border-materialPurpleOpaque ${
+        className={`text-2xl block py-3 text-materialPurple border-b-2 border-materialPurpleOpaque ${
           isSelected ? "border-neonPink text-neonPink" : ""
         }`}
-        style={{ display: "block" }}
       >
         {label}
         <span className="float-right text-white">
