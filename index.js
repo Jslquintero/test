@@ -4,6 +4,7 @@ const baseUrl = "https://us-central1-skillair-1.cloudfunctions.net";
 function App() {
   const [selectedSkillId, setSelectedSkillId] = useState(null);
   const [filters, setFilters] = useState({});
+  const [updateFilters, setUpdateFilters] = useState({});
 
   return (
     <div className="w-full max-w-screen-sm  mx-auto">
@@ -30,7 +31,6 @@ function SearchBox({
   selectedSkillId,
   filters,
   setFilters,
-  updateFilters,
 }) {
   const [searchText, setSearchText] = useState("");
   const [result, setResult] = useState([]);
@@ -44,6 +44,8 @@ function SearchBox({
   const [minPrice, setMinPrice] = useState("");
   const [maxPrice, setMaxPrice] = useState("");
   const [selectedDeliveryOption, setSelectedDeliveryOption] = useState([]);
+
+  const [updateFilters, setUpdateFilters] = useState({});
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -110,24 +112,25 @@ function SearchBox({
 
     if (isVisible) {
       return (
-        <span
-          id="badge-dismiss-filter"
-          className="inline-flex items-center px-2 py-1 me-2 text-sm font-medium text-white bg-neonPink rounded"
-        >
-          <span className="text-white">
-            {label}: {value}
-          </span>
-          <button
-            type="button"
-            className="inline-flex items-center p-1 ms-2 text-sm text-white bg-transparent rounded-sm"
-            data-dismiss-target="#badge-dismiss-filter"
-            aria-label="Remove"
-            onClick={handleRemove}
-          >
-            <i className="fa-solid fa-xmark"></i>
-            <span className="sr-only">Remove badge</span>
-          </button>
-        </span>
+        <>
+          <div className="grid grid-cols-[90%,10%] px-2 py-1 me-2 text-lg font-medium text-white bg-neonPink rounded">
+            <span className="text-white">
+              {label}: {value}
+            </span>
+            <div className="grid grid-cols-2 place-items-center">
+              <button
+                type="button"
+                className="p-1 text-lg text-white text-center bg-transparent rounded-sm"
+                data-dismiss-target="#badge-dismiss-filter"
+                aria-label="Remove"
+                onClick={handleRemove}
+              >
+                <i className="fa-solid fa-xmark"></i>
+                <span className="sr-only">Remove badge</span>
+              </button>
+            </div>
+          </div>
+        </>
       );
     } else {
       return null;
@@ -169,8 +172,8 @@ function SearchBox({
           />
         </div>
       </div>
-      <div className="grid grid-cols-1">
-        <div className="flex flex-wrap gap-2">
+      <div className="grid grid-cols-1 my-2">
+        <div className="grid grid-cols-2 gap-2">
           <FilterBadge
             label="Location"
             value={filters.location?.city ? filters.location.city : ""}
@@ -181,7 +184,13 @@ function SearchBox({
           />
           <FilterBadge
             label="Rate"
-            value={filters.rate ? filters.rate.replace(/_/g, " ") : ""}
+            value={
+              filters.rate === null
+                ? "any"
+                : filters.rate
+                ? filters.rate.replace(/_/g, " ")
+                : ""
+            }
           />
           <FilterBadge
             label="Delivery"
@@ -209,7 +218,7 @@ function SearchBox({
             handleResultClick={handleResultClick}
           />
         )}
-        <div class="">
+        <div class="my-5">
           {!selectedSkillId && (
             <FilterOnStartup
               location={location}
@@ -227,7 +236,7 @@ function SearchBox({
               searchText={searchText}
               setFilters={setFilters}
               filters={filters}
-              updateFilters={setFilters}
+              setUpdateFilters={setFilters}
               handleDoneClick={handleDoneClick}
             />
           )}
@@ -602,7 +611,7 @@ function Details({ selectedSkillId }) {
         <div>
           <hr className="border-materialPurpleOpaque" />
           <div className="grid grid-cols-auto gap-4">
-            <h2 className="text-2xl font-extrabold text-materialPurple">
+            <h2 className="text-lg font-extrabold text-materialPurple">
               Description
             </h2>
             <p className="text-lg text-materialPurple">{description}</p>
@@ -681,7 +690,6 @@ function Filter({
 }
 
 function FilterOnStartup({
-  onClose,
   location,
   setLocation,
   category,
@@ -695,17 +703,11 @@ function FilterOnStartup({
   selectedDeliveryOption,
   setSelectedDeliveryOption,
   setFilters,
-  updateFilters,
+  setUpdateFilters,
   handleDoneClick,
 }) {
   const [filterName, setFilterName] = useState("");
   const [selectedFilter, setSelectedFilter] = useState(null);
-
-  const [showOptions, setShowOptions] = useState(false);
-
-  const toggleOptions = () => {
-    setShowOptions(!showOptions);
-  };
 
   const filterOptions = [
     { label: "Location" },
@@ -736,8 +738,8 @@ function FilterOnStartup({
   };
 
   const handleDone = () => {
-    toggleOptions();
-    updateFilters({
+    setFilterName("");
+    setUpdateFilters({
       location,
       category,
       rate,
@@ -751,7 +753,7 @@ function FilterOnStartup({
 
   return (
     <>
-      <div className="grid grid-rows-1 gap-2">
+      <div className="grid grid-rows-1 gap-3">
         <div className="h-10">
           <div className="grid grid-cols-[6%,57%,37%]">
             <a
@@ -766,19 +768,13 @@ function FilterOnStartup({
             <h2 className="text-lg mt-3 font-semibold text-materialPurple">
               {filterName}
             </h2>
-            <div className="grid grid-cols-2 gap-2 mt-3">
+            <div className="grid grid-cols-1 mt-3">
               <button
                 type="button"
                 className="text-neonPinkOpaque text-lg font-semibold"
                 onClick={handleReset}
               >
                 Reset
-              </button>
-              <button
-                className="text-neonPink text-lg font-semibold"
-                onClick={handleDone}
-              >
-                Done
               </button>
             </div>
           </div>
@@ -787,10 +783,35 @@ function FilterOnStartup({
           {selectedFilter ? (
             <div>
               {selectedFilter === "Location" && (
-                <LocationFilter location={location} setLocation={setLocation} />
+                <LocationFilter
+                  location={location}
+                  setLocation={setLocation}
+                  handleDoneClick={handleDoneClick}
+                  setSelectedFilter={setSelectedFilter}
+                  setUpdateFilters={setUpdateFilters}
+                  category={category}
+                  rate={rate}
+                  minPrice={minPrice}
+                  maxPrice={minPrice}
+                  selectedDeliveryOption={selectedDeliveryOption}
+                  setFilterName={setFilterName}
+                />
               )}
               {selectedFilter === "Category" && (
-                <CategoryFilter category={category} setCategory={setCategory} />
+                <CategoryFilter
+                  category={category}
+                  setCategory={setCategory}
+                  location={location}
+                  setLocation={setLocation}
+                  handleDoneClick={handleDoneClick}
+                  setSelectedFilter={setSelectedFilter}
+                  setUpdateFilters={setUpdateFilters}
+                  rate={rate}
+                  minPrice={minPrice}
+                  maxPrice={minPrice}
+                  selectedDeliveryOption={selectedDeliveryOption}
+                  setFilterName={setFilterName}
+                />
               )}
               {selectedFilter === "Price" && (
                 <PriceFilter
@@ -800,19 +821,40 @@ function FilterOnStartup({
                   setMinPrice={setMinPrice}
                   maxPrice={maxPrice}
                   setMaxPrice={setMaxPrice}
+                  category={category}
+                  location={location}
+                  setLocation={setLocation}
+                  handleDoneClick={handleDoneClick}
+                  setSelectedFilter={setSelectedFilter}
+                  setUpdateFilters={setUpdateFilters}
+                  selectedDeliveryOption={selectedDeliveryOption}
+                  setFilterName={setFilterName}
                 />
               )}
               {selectedFilter === "Delivery" && (
                 <DeliveryFilter
                   selectedDeliveryOption={selectedDeliveryOption}
                   setSelectedDeliveryOption={setSelectedDeliveryOption}
+                  rate={rate}
+                  setRate={setRate}
+                  minPrice={minPrice}
+                  setMinPrice={setMinPrice}
+                  maxPrice={maxPrice}
+                  setMaxPrice={setMaxPrice}
+                  category={category}
+                  location={location}
+                  setLocation={setLocation}
+                  handleDoneClick={handleDoneClick}
+                  setSelectedFilter={setSelectedFilter}
+                  setUpdateFilters={setUpdateFilters}
+                  setFilterName={setFilterName}
                 />
               )}
             </div>
           ) : (
             <div>
               {filterOptions.map((option, index) => (
-                <div className="container text-2xl my-1">
+                <div className="container text-2xl font-semibold my-1">
                   <a
                     key={index}
                     className="grid grid-cols-[1fr,auto] text-materialPurple  cursor-pointer hover:bg-gray-100 transition-colors duration-200"
@@ -874,7 +916,7 @@ function FilterModal({
 
   const handleBack = () => {
     setSelectedFilter(null);
-    setFilterName("");
+    setFilterName("Filter");
   };
 
   const handleDone = () => {
@@ -971,9 +1013,22 @@ function FilterModal({
   );
 }
 
-function CategoryFilter({ category, setCategory }) {
+function CategoryFilter({
+  category,
+  setCategory,
+  handleDoneClick,
+  setSelectedFilter,
+  setUpdateFilters,
+  location,
+  rate,
+  minPrice,
+  maxPrice,
+  selectedDeliveryOption,
+  setFilterName,
+}) {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isDone, setIsDone] = useState(false);
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -1002,6 +1057,27 @@ function CategoryFilter({ category, setCategory }) {
 
   const handleFilterSelect = (categories) => {
     setCategory(categories);
+    setIsDone(true);
+  };
+
+  useEffect(() => {
+    if (isDone && setUpdateFilters) {
+      handleDone();
+    }
+  }, [category]);
+
+  const handleDone = () => {
+    setUpdateFilters({
+      location,
+      category,
+      rate,
+      minPrice,
+      maxPrice,
+      ...selectedDeliveryOption,
+    });
+    setSelectedFilter(null);
+    setFilterName(null);
+    handleDoneClick();
   };
 
   const CategoryList = ({ categories }) => {
@@ -1021,7 +1097,7 @@ function CategoryFilter({ category, setCategory }) {
           e.preventDefault();
           handleFilterSelect(categories);
         }}
-        className="flex justify-between py-3 text-2xl  text-materialPurple w-full max-w-xl cursor-pointer hover:bg-gray-100 transition-colors duration-200"
+        className="flex justify-between py-3 text-lg  text-materialPurple w-full max-w-xl cursor-pointer hover:bg-gray-100 transition-colors duration-200"
       >
         {categories.name}
         <span className="float-right text-white">
@@ -1062,12 +1138,25 @@ function CategoryFilter({ category, setCategory }) {
   );
 }
 
-function LocationFilter({ location, setLocation }) {
+function LocationFilter({
+  location,
+  setLocation,
+  handleDoneClick,
+  setSelectedFilter,
+  setUpdateFilters,
+  category,
+  rate,
+  minPrice,
+  maxPrice,
+  selectedDeliveryOption,
+  setFilterName,
+}) {
   const [locations, setLocations] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isDone, setIsDone] = useState(false);
 
   useEffect(() => {
-    const fetchCategories = async () => {
+    const fetchLocations = async () => {
       try {
         const response = await fetch(`${baseUrl}/getLocations`);
         if (!response.ok) {
@@ -1085,11 +1174,32 @@ function LocationFilter({ location, setLocation }) {
         setLoading(false);
       }
     };
-    fetchCategories();
+    fetchLocations();
   }, []);
 
   const handleFilterSelect = (location) => {
     setLocation(location);
+    setIsDone(true);
+  };
+
+  useEffect(() => {
+    if (isDone && setUpdateFilters) {
+      handleDone();
+    }
+  }, [location]);
+
+  const handleDone = () => {
+    setUpdateFilters({
+      location,
+      category,
+      rate,
+      minPrice,
+      maxPrice,
+      ...selectedDeliveryOption,
+    });
+    setFilterName(null);
+    setSelectedFilter(null);
+    handleDoneClick();
   };
 
   const LocationList = ({ value }) => {
@@ -1110,7 +1220,7 @@ function LocationFilter({ location, setLocation }) {
           e.preventDefault();
           handleFilterSelect(value);
         }}
-        className="flex justify-between py-3 text-2xl  text-materialPurple w-full max-w-xl cursor-pointer hover:bg-gray-100 transition-colors duration-200"
+        className="flex justify-between py-3 text-lg text-materialPurple w-full max-w-xl cursor-pointer hover:bg-gray-100 transition-colors duration-200"
       >
         {value.city}
         <span className="float-right text-white">
@@ -1128,8 +1238,8 @@ function LocationFilter({ location, setLocation }) {
 
   if (loading) {
     return (
-      <div className="animate-pulse ">
-        <div className="flex justify-between py-3  text-materialPurple w-full max-w-xl cursor-pointer hover:bg-gray-100 transition-colors duration-200">
+      <div className="animate-pulse">
+        <div className="flex justify-between py-3 text-materialPurple w-full max-w-xl cursor-pointer hover:bg-gray-100 transition-colors duration-200">
           <span className="flex-grow mx-2 bg-gray-300 h-6 rounded"></span>
         </div>
       </div>
@@ -1138,14 +1248,14 @@ function LocationFilter({ location, setLocation }) {
 
   return (
     <div
-      class="max-h-128 overflow-y-scroll"
+      className="max-h-128 overflow-y-scroll"
       style={{
         scrollbarWidth: "none",
         scrollbarColor: "transparent transparent",
       }}
     >
       {locations.map((item) => (
-        <LocationList key={item} value={item} />
+        <LocationList key={item.city} value={item} />
       ))}
     </div>
   );
@@ -1158,6 +1268,13 @@ function PriceFilter({
   setMaxPrice,
   rate,
   setRate,
+  handleDoneClick,
+  setSelectedFilter,
+  setUpdateFilters,
+  category,
+  location,
+  selectedDeliveryOption,
+  setFilterName,
 }) {
   const rates = [
     {
@@ -1174,8 +1291,11 @@ function PriceFilter({
     },
   ];
 
+  const [isDone, setIsDone] = useState(false);
+
   const handleRateChange = (value) => {
     setRate(value);
+    setIsDone(true);
   };
 
   const handleMinPriceChange = (e) => {
@@ -1184,6 +1304,26 @@ function PriceFilter({
 
   const handleMaxPriceChange = (e) => {
     setMaxPrice(e.target.value);
+  };
+
+  useEffect(() => {
+    if (isDone && setUpdateFilters) {
+      handleDone();
+    }
+  }, [minPrice, maxPrice, rate]);
+
+  const handleDone = () => {
+    setUpdateFilters({
+      location,
+      category,
+      rate,
+      minPrice,
+      maxPrice,
+      ...selectedDeliveryOption,
+    });
+    setSelectedFilter(null);
+    setFilterName(null);
+    handleDoneClick();
   };
 
   const RadioButton = ({ label, value }) => {
@@ -1196,7 +1336,7 @@ function PriceFilter({
           e.preventDefault();
           handleRateChange(value);
         }}
-        className={`text-2xl py-3 block text-materialPurple border-b-2 border-materialPurpleOpaque ${
+        className={`text-lg py-3 block text-materialPurple border-b-2 border-materialPurpleOpaque ${
           isSelected ? "border-neonPink text-neonPink" : ""
         }`}
       >
@@ -1248,7 +1388,22 @@ function PriceFilter({
   );
 }
 
-function DeliveryFilter({ selectedDeliveryOption, setSelectedDeliveryOption }) {
+function DeliveryFilter({
+  selectedDeliveryOption,
+  setSelectedDeliveryOption,
+  minPrice,
+  setMinPrice,
+  maxPrice,
+  setMaxPrice,
+  rate,
+  setRate,
+  handleDoneClick,
+  setSelectedFilter,
+  setUpdateFilters,
+  category,
+  location,
+  setFilterName,
+}) {
   const deliveryOptions = [
     {
       label: "Any",
@@ -1273,8 +1428,31 @@ function DeliveryFilter({ selectedDeliveryOption, setSelectedDeliveryOption }) {
     },
   ];
 
+  const [isDone, setIsDone] = useState(false);
+
   const handleDeliveryChange = (value) => {
     setSelectedDeliveryOption(value);
+    setIsDone(true);
+  };
+
+  useEffect(() => {
+    if (isDone && setUpdateFilters) {
+      handleDone();
+    }
+  }, [selectedDeliveryOption]);
+
+  const handleDone = () => {
+    setUpdateFilters({
+      location,
+      category,
+      rate,
+      minPrice,
+      maxPrice,
+      ...selectedDeliveryOption,
+    });
+    setSelectedFilter(null);
+    setFilterName(null);
+    handleDoneClick();
   };
 
   const RadioButton = ({ label, value }) => {
@@ -1287,7 +1465,7 @@ function DeliveryFilter({ selectedDeliveryOption, setSelectedDeliveryOption }) {
       <a
         href="#"
         onClick={() => handleDeliveryChange(value)}
-        className={`text-2xl block py-3 text-materialPurple border-b-2 border-materialPurpleOpaque ${
+        className={`text-lg block py-3 text-materialPurple border-b-2 border-materialPurpleOpaque ${
           isSelected ? "border-neonPink text-neonPink" : ""
         }`}
       >
