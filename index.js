@@ -935,7 +935,7 @@ function FilterModal({
 
   return (
     <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex justify-center items-center">
-      <div className="bg-white rounded-lg p-6 w-full max-w-sm">
+      <div className="bg-white rounded-lg p-6 w-72 max-w-sm">
         <div className="flex justify-between items-center mb-4">
           <a
             type="button"
@@ -996,7 +996,7 @@ function FilterModal({
               {options.map((option, index) => (
                 <a
                   key={index}
-                  className="flex justify-between py-3 block text-materialPurple w-full max-w-sm cursor-pointer hover:bg-gray-100 transition-colors duration-200"
+                  className="flex justify-between py-3 block text-lg text-materialPurple w-full max-w-sm cursor-pointer hover:bg-gray-100 transition-colors duration-200"
                   onClick={() => handleFilterSelect(option.label)}
                 >
                   <span className="flex-grow mx-2">{option.label}</span>
