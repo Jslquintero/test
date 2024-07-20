@@ -113,20 +113,20 @@ function SearchBox({
     if (isVisible) {
       return (
         <>
-          <div className="grid grid-cols-[auto,1fr] px-2 py-1 xs:text-xs sm:text-sm md:text-lg font-medium text-white bg-neonPink rounded">
+          <div className="grid grid-cols-[95%,5%] px-2 py-1 xs:text-xs sm:text-sm md:text-lg font-medium text-white bg-neonPink rounded">
             <span className="text-white">
               {label}: {value}
             </span>
-              <button
-                type="button"
-                className="p-1 xs:text-xs sm:text-sm  md:text-lg text-white text-center bg-transparent rounded-s"
-                data-dismiss-target="#badge-dismiss-filter"
-                aria-label="Remove"
-                onClick={handleRemove}
-              >
-                <i className="fa-solid fa-xmark"></i>
-                <span className="sr-only">Remove badge</span>
-              </button>
+            <button
+              type="button"
+              className="p-1 xs:text-xs sm:text-sm  md:text-lg text-white text-center bg-transparent rounded-s"
+              data-dismiss-target="#badge-dismiss-filter"
+              aria-label="Remove"
+              onClick={handleRemove}
+            >
+              <i className="fa-solid fa-xmark"></i>
+              <span className="sr-only">Remove badge</span>
+            </button>
           </div>
         </>
       );
@@ -171,7 +171,7 @@ function SearchBox({
         </div>
       </div>
       <div className="grid grid-cols-1 my-2">
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
           <FilterBadge
             label="Location"
             value={filters.location?.city ? filters.location.city : ""}
