@@ -135,6 +135,12 @@ function SearchBox({
     }
   };
 
+  const capitalizeFirstLetter = (str) => {
+    if (!str) return str;
+    return str.charAt(0).toUpperCase() + str.slice(1);
+  };
+
+
   return (
     <div className="relative ">
       <div className="grid grid-cols-3 gap-1">
@@ -171,7 +177,7 @@ function SearchBox({
         </div>
       </div>
       <div className="grid grid-cols-1 my-2">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+        <div className="flex flex-wrap gap-2">
           <FilterBadge
             label="Location"
             value={filters.location?.city ? filters.location.city : ""}
@@ -184,9 +190,9 @@ function SearchBox({
             label="Rate"
             value={
               filters.rate === null
-                ? "any"
+                ? "Any"
                 : filters.rate
-                ? filters.rate.replace(/_/g, " ")
+                ? capitalizeFirstLetter(filters.rate.replace(/_/g, " "))
                 : ""
             }
           />
@@ -203,6 +209,7 @@ function SearchBox({
             }
           />
         </div>
+
         {resultsOpen && (
           <SearchResults
             searchText={searchText}
