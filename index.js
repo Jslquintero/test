@@ -1008,7 +1008,7 @@ function CategoryFilterStartUp({
     <>
       <img
         className="my-2"
-        src="https://raw.githubusercontent.com/Jslquintero/test/main/logo.png"
+        src="https://github.com/Jslquintero/test/blob/main/logo.png?raw=true"
       />
 
       <div
