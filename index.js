@@ -1009,7 +1009,9 @@ function CategoryFilterStartUp({
   return (
     <>
       <img className="my-2 pointer-events-none" src={logoImage} />
-
+      <h1 className="text-materialPurple my-2">
+        ALL CATEGORIES ({categories.length})
+      </h1>
       <div
         class="max-h-130 overflow-y-scroll"
         style={{
@@ -1017,9 +1019,6 @@ function CategoryFilterStartUp({
           scrollbarWidth: "thin",
         }}
       >
-        <h1 className="text-materialPurple my-2">
-          ALL CATEGORIES ({categories.length})
-        </h1>
         {categories.map((item, index) => (
           <CategoryList key={index} categories={item} />
         ))}
