@@ -956,9 +956,9 @@ function CategoryFilterStartUp({
     return (
       <>
         <div className="grid grid-cols-[10%,auto] gap-5 my-6">
-          <div className="rounded-full bg-opaquePink flex justify-center items-center w-16 h-16">
+          <div className="rounded-full bg-opaquePink flex justify-center items-center w-10 h-10 mt-1">
             <svg
-              className="w-3/4 h-3/4"
+              className="w-5"
               viewBox="0 0 30 35"
               fill="none"
               xmlns="http://www.w3.org/2000/svg"
@@ -983,7 +983,7 @@ function CategoryFilterStartUp({
             {categories.name}
             <span className="float-right text-white">
               <i
-                className={`mt-5 fa-solid fa-chevron-right  ${
+                className={`mt-1 fa-solid fa-chevron-right  ${
                   isSelected ? "text-neonPink" : "text-materialPurple"
                 }`}
               ></i>
