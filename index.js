@@ -170,7 +170,7 @@ function SearchBox({
         </div>
       </div>
       <div className="grid grid-cols-1 my-2">
-        <div className="flex flex-grow space-x-2">
+        <div className="grid grid-cols-2 gap-2">
           <FilterBadge
             label="Location"
             value={filters.location?.city ? filters.location.city : ""}
