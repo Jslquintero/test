@@ -1008,10 +1008,7 @@ function CategoryFilterStartUp({
 
   return (
     <>
-      <img
-        className="my-2"
-        src={logoImage}
-      />
+      <img className="my-2 pointer-events-none" src={logoImage} />
 
       <div
         class="max-h-130 overflow-y-scroll"
