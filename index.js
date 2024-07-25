@@ -1,5 +1,7 @@
 const { useEffect, useState, useRef } = React;
 const baseUrl = "https://us-central1-skillair-1.cloudfunctions.net";
+const logoImage =
+  "https://github.com/Jslquintero/test/blob/main/logo.png?raw=true";
 
 function App() {
   const [selectedSkillId, setSelectedSkillId] = useState(null);
@@ -1008,7 +1010,7 @@ function CategoryFilterStartUp({
     <>
       <img
         className="my-2"
-        src="https://github.com/Jslquintero/test/blob/main/logo.png?raw=true"
+        src={logoImage}
       />
 
       <div
