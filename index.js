@@ -115,13 +115,13 @@ function SearchBox({
     if (isVisible) {
       return (
         <>
-          <div className="bg-neonPink rounded-full px-4 py-2 flex items-center justify-between">
+          <div className="bg-neonPink rounded-full px-3 py-1 inline-flex items-center">
             <span className="text-white font-medium text-sm">{value}</span>
             <button
               type="button"
               aria-label="Remove"
               onClick={handleRemove}
-              className="text-white hover:bg-neonPink rounded-full"
+              className="text-white hover:bg-neonPink rounded-full ml-2 p-1"
             >
               <i className="w-4 h-4 text-gray-100 text-opacity-50 sm:text-opacity-75 hover:text-opacity-100 fa-solid fa-circle-xmark"></i>
               <span className="sr-only">Remove</span>
