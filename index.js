@@ -115,16 +115,16 @@ function SearchBox({
     if (isVisible) {
       return (
         <>
-          <div className="flex items-center px-2 py-1 text-white bg-neonPink rounded-full font-medium xs:text-xs sm:text-sm md:text-lg">
-            <span className="mr-2">{value}</span>
+          <div className="bg-neonPink rounded-full px-4 py-2 flex items-center justify-between">
+            <span className="text-white font-medium text-sm">{value}</span>
             <button
               type="button"
-              className="p-1 bg-transparent rounded-full"
               aria-label="Remove"
               onClick={handleRemove}
+              className="text-white hover:bg-neonPink rounded-full"
             >
-              <i className="text-gray-100 text-opacity-50 sm:text-opacity-75 hover:text-opacity-100 fa-solid fa-circle-xmark"></i>
-              <span className="sr-only">Remove badge</span>
+              <i className="w-4 h-4 text-gray-100 text-opacity-50 sm:text-opacity-75 hover:text-opacity-100 fa-solid fa-circle-xmark"></i>
+              <span className="sr-only">Remove</span>
             </button>
           </div>
         </>
@@ -170,7 +170,7 @@ function SearchBox({
         </div>
       </div>
       <div className="grid grid-cols-1 my-2">
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-4 gap-2">
           <FilterBadge
             label="Location"
             value={filters.location?.city ? filters.location.city : ""}
