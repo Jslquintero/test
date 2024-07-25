@@ -956,10 +956,9 @@ function CategoryFilterStartUp({
     return (
       <>
         <div className="grid grid-cols-[10%,auto] gap-5 my-6">
-          <div className="rounded-full bg-opaquePink flex justify-center pt-3">
+          <div className="rounded-full bg-opaquePink flex justify-center items-center w-16 h-16">
             <svg
-              width="40"
-              height="35"
+              className="w-3/4 h-3/4"
               viewBox="0 0 30 35"
               fill="none"
               xmlns="http://www.w3.org/2000/svg"
@@ -967,8 +966,8 @@ function CategoryFilterStartUp({
               <path
                 d="M11.5 20.4026C-2.5 12.5 6.5 -3 23 5.90261M3 27.9026C15.8802 38.3608 39 27 18.5 14.4026"
                 stroke="#FE009C"
-                stroke-width="6"
-                stroke-linecap="round"
+                strokeWidth="6"
+                strokeLinecap="round"
               />
             </svg>
           </div>
@@ -1007,7 +1006,10 @@ function CategoryFilterStartUp({
 
   return (
     <>
-      <img className="my-2" src="/logo.png" />
+      <img
+        className="my-2"
+        src="https://raw.githubusercontent.com/Jslquintero/test/main/logo.png"
+      />
 
       <div
         class="max-h-130 overflow-y-scroll"
