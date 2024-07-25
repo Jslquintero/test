@@ -115,18 +115,15 @@ function SearchBox({
     if (isVisible) {
       return (
         <>
-          <div className="grid grid-cols-[95%,5%] px-2 py-1 xs:text-xs sm:text-sm md:text-lg font-medium text-white bg-neonPink rounded">
-            <span className="text-white">
-              {label}: {value}
-            </span>
+          <div className="flex items-center px-2 py-1 text-white bg-neonPink rounded-full font-medium xs:text-xs sm:text-sm md:text-lg">
+            <span className="mr-2">{value}</span>
             <button
               type="button"
-              className="p-1 xs:text-xs sm:text-sm  md:text-lg text-white text-center bg-transparent rounded-s"
-              data-dismiss-target="#badge-dismiss-filter"
+              className="p-1 bg-transparent rounded-full"
               aria-label="Remove"
               onClick={handleRemove}
             >
-              <i className="fa-solid fa-xmark"></i>
+              <i className="text-gray-100 text-opacity-50 sm:text-opacity-75 hover:text-opacity-100 fa-solid fa-circle-xmark"></i>
               <span className="sr-only">Remove badge</span>
             </button>
           </div>
@@ -173,7 +170,7 @@ function SearchBox({
         </div>
       </div>
       <div className="grid grid-cols-1 my-2">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+        <div className="flex flex-grow space-x-2">
           <FilterBadge
             label="Location"
             value={filters.location?.city ? filters.location.city : ""}
@@ -813,18 +810,15 @@ function FilterModal({
           <h2 className="text-lg font-semibold text-materialPurple">
             {filterName}
           </h2>
-          <div className="flex space-x-4">
+          <div className="flex space-x-4 font-bold">
             <button
               type="button"
-              className="text-neonPink text-lg font-semibold"
+              className="text-neonPink text-lg"
               onClick={handleReset}
             >
               Reset
             </button>
-            <button
-              className="text-neonPink text-lg font-semibold"
-              onClick={handleDone}
-            >
+            <button className="text-neonPink text-lg" onClick={handleDone}>
               Done
             </button>
           </div>
@@ -1008,7 +1002,7 @@ function CategoryFilterStartUp({
 
   return (
     <>
-      <img className="my-2 pointer-events-none" src={logoImage} />
+      <img className="my-2 pointer-events-none" src="/logo.png" />
       <h1 className="text-materialPurple my-2">
         ALL CATEGORIES ({categories.length})
       </h1>
