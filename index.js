@@ -216,7 +216,7 @@ function SearchBox({
             handleResultClick={handleResultClick}
           />
         )}
-        <div class="my-5">
+        <div class="my-1">
           {!selectedSkillId && (
             <FilterOnStartup
               location={location}
@@ -707,164 +707,26 @@ function FilterOnStartup({
   const [filterName, setFilterName] = useState("");
   const [selectedFilter, setSelectedFilter] = useState(null);
 
-  const filterOptions = [
-    { label: "Location" },
-    { label: "Category" },
-    { label: "Price" },
-    { label: "Delivery" },
-  ];
-
-  const handleFilterSelect = (filter) => {
-    setSelectedFilter(filter);
-    setFilterName(`Filter - ${filter}`);
-  };
-
-  const handleReset = () => {
-    setSelectedFilter(null);
-    setLocation("");
-    setCategory("");
-    setRate("");
-    setMinPrice("");
-    setMaxPrice("");
-    setSelectedDeliveryOption({});
-    setFilters({});
-  };
-
-  const handleBack = () => {
-    setSelectedFilter(null);
-    setFilterName("");
-  };
-
-  const handleDone = () => {
-    setFilterName("");
-    setUpdateFilters({
-      location,
-      category,
-      rate,
-      minPrice,
-      maxPrice,
-      ...selectedDeliveryOption,
-    });
-    setSelectedFilter(null);
-    handleDoneClick();
-  };
-
   return (
     <>
       <div className="grid grid-rows-1 gap-3">
-        <div className="h-10">
-          <div className="grid grid-cols-[6%,57%,37%]">
-            <a
-              type="button"
-              className="text-materialPurple cursor-pointer"
-              onClick={handleBack}
-            >
-              {selectedFilter && (
-                <i className="mt-5 fa-solid fa-chevron-left text-neonPink"></i>
-              )}
-            </a>
-            <h2 className="text-lg mt-3 font-semibold text-materialPurple">
-              {filterName}
-            </h2>
-            <div className="grid grid-cols-1 mt-3">
-              <button
-                type="button"
-                className="text-neonPinkOpaque text-lg font-semibold"
-                onClick={handleReset}
-              >
-                Reset
-              </button>
-            </div>
-          </div>
-        </div>
         <div>
-          {selectedFilter ? (
-            <div>
-              {selectedFilter === "Location" && (
-                <LocationFilter
-                  location={location}
-                  setLocation={setLocation}
-                  handleDoneClick={handleDoneClick}
-                  setSelectedFilter={setSelectedFilter}
-                  setUpdateFilters={setUpdateFilters}
-                  category={category}
-                  rate={rate}
-                  minPrice={minPrice}
-                  maxPrice={minPrice}
-                  selectedDeliveryOption={selectedDeliveryOption}
-                  setFilterName={setFilterName}
-                />
-              )}
-              {selectedFilter === "Category" && (
-                <CategoryFilter
-                  category={category}
-                  setCategory={setCategory}
-                  location={location}
-                  setLocation={setLocation}
-                  handleDoneClick={handleDoneClick}
-                  setSelectedFilter={setSelectedFilter}
-                  setUpdateFilters={setUpdateFilters}
-                  rate={rate}
-                  minPrice={minPrice}
-                  maxPrice={minPrice}
-                  selectedDeliveryOption={selectedDeliveryOption}
-                  setFilterName={setFilterName}
-                />
-              )}
-              {selectedFilter === "Price" && (
-                <PriceFilter
-                  rate={rate}
-                  setRate={setRate}
-                  minPrice={minPrice}
-                  setMinPrice={setMinPrice}
-                  maxPrice={maxPrice}
-                  setMaxPrice={setMaxPrice}
-                  category={category}
-                  location={location}
-                  setLocation={setLocation}
-                  handleDoneClick={handleDoneClick}
-                  setSelectedFilter={setSelectedFilter}
-                  setUpdateFilters={setUpdateFilters}
-                  selectedDeliveryOption={selectedDeliveryOption}
-                  setFilterName={setFilterName}
-                />
-              )}
-              {selectedFilter === "Delivery" && (
-                <DeliveryFilter
-                  selectedDeliveryOption={selectedDeliveryOption}
-                  setSelectedDeliveryOption={setSelectedDeliveryOption}
-                  rate={rate}
-                  setRate={setRate}
-                  minPrice={minPrice}
-                  setMinPrice={setMinPrice}
-                  maxPrice={maxPrice}
-                  setMaxPrice={setMaxPrice}
-                  category={category}
-                  location={location}
-                  setLocation={setLocation}
-                  handleDoneClick={handleDoneClick}
-                  setSelectedFilter={setSelectedFilter}
-                  setUpdateFilters={setUpdateFilters}
-                  setFilterName={setFilterName}
-                />
-              )}
-            </div>
-          ) : (
-            <div>
-              {filterOptions.map((option, index) => (
-                <div className="container text-2xl font-semibold my-1">
-                  <a
-                    key={index}
-                    className="grid grid-cols-[1fr,auto] text-materialPurple  cursor-pointer hover:bg-gray-100 transition-colors duration-200"
-                    onClick={() => handleFilterSelect(option.label)}
-                  >
-                    <span className="mx-2 col-span-1">{option.label}</span>
-                    <i className="text-right fa-solid fa-chevron-right text-neonPink"></i>
-                  </a>
-                </div>
-              ))}
-            </div>
-          )}
+          <div>
+            <CategoryFilterStartUp
+              category={category}
+              setCategory={setCategory}
+              location={location}
+              setLocation={setLocation}
+              handleDoneClick={handleDoneClick}
+              setSelectedFilter={setSelectedFilter}
+              setUpdateFilters={setUpdateFilters}
+              rate={rate}
+              minPrice={minPrice}
+              maxPrice={minPrice}
+              selectedDeliveryOption={selectedDeliveryOption}
+              setFilterName={setFilterName}
+            />
+          </div>
         </div>
       </div>
     </>
@@ -935,7 +797,7 @@ function FilterModal({
 
   return (
     <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex justify-center items-center">
-      <div className="bg-white rounded-lg p-6 w-72 max-w-sm">
+      <div className="bg-white rounded-lg p-6 w-full max-w-lg">
         <div className="flex justify-between items-center mb-4">
           <a
             type="button"
@@ -952,7 +814,7 @@ function FilterModal({
           <div className="flex space-x-4">
             <button
               type="button"
-              className="text-neonPinkOpaque text-lg font-semibold"
+              className="text-neonPink text-lg font-semibold"
               onClick={handleReset}
             >
               Reset
@@ -994,20 +856,174 @@ function FilterModal({
           ) : (
             <div>
               {options.map((option, index) => (
-                <a
-                  key={index}
-                  className="flex justify-between py-3 block text-lg text-materialPurple w-full max-w-sm cursor-pointer hover:bg-gray-100 transition-colors duration-200"
-                  onClick={() => handleFilterSelect(option.label)}
-                >
-                  <span className="flex-grow mx-2">{option.label}</span>
-                  <i className="fa-solid fa-chevron-right text-neonPink"></i>
-                </a>
+                <>
+                  <a
+                    key={index}
+                    className="flex justify-between py-3 block text-lg text-materialPurple w-full max-w-lg cursor-pointer hover:bg-gray-100 transition-colors duration-200"
+                    onClick={() => handleFilterSelect(option.label)}
+                  >
+                    <span className="flex-grow mx-2">{option.label}</span>
+                    <i className="fa-solid fa-chevron-right text-neonPink"></i>
+                  </a>
+                  <hr className="bg-materialPurple" />
+                </>
               ))}
             </div>
           )}
         </div>
       </div>
     </div>
+  );
+}
+
+function CategoryFilterStartUp({
+  category,
+  setCategory,
+  handleDoneClick,
+  setSelectedFilter,
+  setUpdateFilters,
+  location,
+  rate,
+  minPrice,
+  maxPrice,
+  selectedDeliveryOption,
+  setFilterName,
+}) {
+  const [categories, setCategories] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [isDone, setIsDone] = useState(false);
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await fetch(`${baseUrl}/getCategories`);
+        if (!response.ok) {
+          throw new Error("Network response was not ok");
+        }
+        const data = await response.json();
+        setCategories(
+          data.map((category) => ({ id: category.id, name: category.name }))
+        );
+      } catch (error) {
+        swal.fire({
+          title: "Error",
+          text: "An error occurred while fetching results",
+          icon: "error",
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCategories();
+  }, []);
+
+  const handleFilterSelect = (categories) => {
+    setCategory(categories);
+    setIsDone(true);
+  };
+
+  useEffect(() => {
+    if (isDone && setUpdateFilters) {
+      handleDone();
+    }
+  }, [category]);
+
+  const handleDone = () => {
+    setUpdateFilters({
+      location,
+      category,
+      rate,
+      minPrice,
+      maxPrice,
+      ...selectedDeliveryOption,
+    });
+    setSelectedFilter(null);
+    setFilterName(null);
+    handleDoneClick();
+  };
+
+  const CategoryList = ({ categories }) => {
+    // const isSelected = categories.id === category.id;
+
+    const areCategoriesEqual = (category1, category2) => {
+      if (!category1 || !category2) return false;
+      return category1.id === category2.id && category1.name === category2.name;
+    };
+
+    const isSelected = areCategoriesEqual(category, categories);
+
+    return (
+      <>
+        <div className="grid grid-cols-[10%,auto] gap-5 my-6">
+          <div className="rounded-full bg-opaquePink flex justify-center pt-3">
+            <svg
+              width="40"
+              height="35"
+              viewBox="0 0 30 35"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M11.5 20.4026C-2.5 12.5 6.5 -3 23 5.90261M3 27.9026C15.8802 38.3608 39 27 18.5 14.4026"
+                stroke="#FE009C"
+                stroke-width="6"
+                stroke-linecap="round"
+              />
+            </svg>
+          </div>
+
+          <a
+            href="#"
+            onClick={(e) => {
+              e.preventDefault();
+              handleFilterSelect(categories);
+            }}
+            className="flex justify-between py-3 text-lg  text-materialPurple w-full max-w-xl cursor-pointer hover:bg-gray-100 transition-colors duration-200"
+          >
+            {categories.name}
+            <span className="float-right text-white">
+              <i
+                className={`mt-5 fa-solid fa-chevron-right  ${
+                  isSelected ? "text-neonPink" : "text-materialPurple"
+                }`}
+              ></i>
+            </span>
+          </a>
+        </div>
+      </>
+    );
+  };
+
+  if (loading) {
+    return (
+      <div className="animate-pulse">
+        <div className="flex justify-between py-3 text-materialPurple w-full max-w-xl cursor-pointer hover:bg-gray-100 transition-colors duration-200">
+          <span className="flex-grow mx-2 bg-gray-300 h-6 rounded"></span>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <>
+      <img className="my-2" src="/logo.png" />
+
+      <div
+        class="max-h-130 overflow-y-scroll"
+        style={{
+          scrollbarColor: "#FD3BB0 transparent",
+          scrollbarWidth: "thin",
+        }}
+      >
+        <h1 className="text-materialPurple my-2">
+          ALL CATEGORIES ({categories.length})
+        </h1>
+        {categories.map((item, index) => (
+          <CategoryList key={index} categories={item} />
+        ))}
+      </div>
+    </>
   );
 }
 
@@ -1510,6 +1526,7 @@ tailwind.config = {
         neonPinkOpaque: "#FD3BB0",
         materialPurple: "#47277b",
         materialPurpleOpaque: "#B2A6C7",
+        opaquePink: "#FFECF2",
         fontColor: "#857a98",
       },
       animation: {
@@ -1517,6 +1534,7 @@ tailwind.config = {
       },
       maxHeight: {
         128: "32rem",
+        130: "35rem",
       },
     },
   },
