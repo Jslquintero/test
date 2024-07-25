@@ -115,21 +115,18 @@ function SearchBox({
     if (isVisible) {
       return (
         <>
-          <div className="flex flex-wrap gap-2">
-            <div className="bg-neonPink rounded-full px-3 py-1 inline-flex items-center">
-              <span className="text-white font-medium text-sm whitespace-nowrap">
-                {value}
-              </span>
+          <div class="flex items-center space-x-2">
+            <span class="text-base inline-block py-2 px-2.5 leading-none text-center whitespace-nowrap align-baseline font-bold bg-neonPink text-white rounded-full flex justify-between items-center">
+              {value}
               <button
                 type="button"
-                aria-label="Remove"
                 onClick={handleRemove}
-                className="text-white hover:bg-neonPink rounded-full ml-2 p-1 flex items-center justify-center"
+                aria-label="Remove"
+                class="ml-2 text-xs py-0.5 px-1 leading-none bg-transparent rounded-full"
               >
-                <i className="w-4 h-4 text-gray-100 text-opacity-50 sm:text-opacity-75 hover:text-opacity-100 fa-solid fa-circle-xmark"></i>
-                <span className="sr-only">Remove</span>
+                <i className="text-gray-100 text-opacity-50 sm:text-opacity-75 hover:text-opacity-100 fa-solid fa-circle-xmark"></i>
               </button>
-            </div>
+            </span>
           </div>
         </>
       );
