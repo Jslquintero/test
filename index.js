@@ -1002,7 +1002,10 @@ function CategoryFilterStartUp({
 
   return (
     <>
-      <img className="my-2 pointer-events-none" src="/logo.png" />
+      <img
+        className="my-2 pointer-events-none"
+        src="https://github.com/Jslquintero/test/blob/main/logo.png?raw=true"
+      />
       <h1 className="text-materialPurple my-2">
         ALL CATEGORIES ({categories.length})
       </h1>
