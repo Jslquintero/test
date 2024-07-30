@@ -1,53 +1,150 @@
-const { useEffect, useState, useRef } = React;
+const { useEffect, useState, useRef, useCallback, memo } = React;
 const baseUrl = "https://us-central1-skillair-1.cloudfunctions.net";
 const logoImage =
   "https://github.com/Jslquintero/test/blob/main/logo.png?raw=true";
 
 function App() {
   const [selectedSkillId, setSelectedSkillId] = useState(null);
-  const [filters, setFilters] = useState({});
-  const [updateFilters, setUpdateFilters] = useState({});
+  const [categoriesList, setCategoriesList] = useState([]);
+  const [locationList, setLocationList] = useState([]);
+  const [filters, setFilters] = useState({
+    location: "",
+    category: "",
+    rate: "",
+    minPrice: "",
+    maxPrice: "",
+    selectedDeliveryOption: [],
+  });
+  const [resultsOpen, setResultsOpen] = useState(false);
+  const [isSkillSearch, setIsSkillSearch] = useState(false);
+  const [isFilterSearch, setIsFilterSearch] = useState(false);
 
+  useEffect(() => {
+    const fetchWithTimeout = (url, options, timeout = 5000) => {
+      return Promise.race([
+        fetch(url, options),
+        new Promise((_, reject) =>
+          setTimeout(() => reject(new Error("Request timed out")), timeout)
+        ),
+      ]);
+    };
+
+    const fetchLocations = async () => {
+      try {
+        const response = await fetchWithTimeout(
+          `${baseUrl}/getLocations`,
+          {},
+          5000
+        );
+        if (!response.ok) {
+          throw new Error("Network response was not ok");
+        }
+        const data = await response.json();
+        setLocationList(data);
+      } catch (error) {
+        swal.fire({
+          title: "Error",
+          text: "An error occurred while fetching results",
+          icon: "error",
+        });
+      }
+    };
+
+    const fetchCategories = async () => {
+      try {
+        const response = await fetchWithTimeout(
+          `${baseUrl}/getCategories`,
+          {},
+          5000
+        );
+        if (!response.ok) {
+          throw new Error("Network response was not ok");
+        }
+        const data = await response.json();
+        setCategoriesList(
+          data.map((category) => ({
+            id: category.id,
+            name: category.name,
+          }))
+        );
+      } catch (error) {
+        swal.fire({
+          title: "Error",
+          text: "An error occurred while fetching results",
+          icon: "error",
+        });
+      }
+    };
+    fetchCategories();
+    fetchLocations();
+  }, []);
   return (
-    <div className="w-full max-w-screen-sm  mx-auto">
-      <div id="search" className="container mx-auto px-4 py-8 mt-10">
+    <>
+      <div className="w-full max-w-screen-sm  mx-auto">
         <h1 className="text-3xl font-bold mb-4 text-center text-materialPurple">
           Find Skills
         </h1>
-        <SearchBox
-          setSelectedSkillId={setSelectedSkillId}
-          selectedSkillId={selectedSkillId}
-          filters={filters}
-          setFilters={setFilters}
-        />
-        <div class="">
+        <div>
+          <SearchBoxComponent
+            setSelectedSkillId={setSelectedSkillId}
+            locationList={locationList}
+            categoriesList={categoriesList}
+            filters={filters}
+            setFilters={setFilters}
+            resultsOpen={resultsOpen}
+            setResultsOpen={setResultsOpen}
+            setIsSkillSearch={setIsSkillSearch}
+            isSkillSearch={isSkillSearch}
+            isFilterSearch={isFilterSearch}
+            setIsFilterSearch={setIsFilterSearch}
+          />
+        </div>
+
+        <div>
+          <img
+            className="my-2 pointer-events-none"
+            src="https://github.com/Jslquintero/test/blob/main/logo.png?raw=true"
+          />
+        </div>
+        <div className="grid grid-cols-1 my-2 z-0">
+          <span className="text-left my-2 text-fontColor">
+            ALL CATEGORIES ({categoriesList.length})
+          </span>
+
+          {!selectedSkillId && (
+            <CategoriesComponent
+              categoriesList={categoriesList}
+              filters={filters}
+              setFilters={setFilters}
+              setResultsOpen={setResultsOpen}
+              setIsSkillSearch={setIsSkillSearch}
+            />
+          )}
+        </div>
+        <div>
           {selectedSkillId && <Details selectedSkillId={selectedSkillId} />}
         </div>
       </div>
-    </div>
+    </>
   );
 }
 
-function SearchBox({
+const SearchBoxComponent = ({
   setSelectedSkillId,
-  selectedSkillId,
+  locationList,
+  categoriesList,
   filters,
   setFilters,
-}) {
+  resultsOpen,
+  setResultsOpen,
+  setIsSkillSearch,
+  isSkillSearch,
+  isFilterSearch,
+  setIsFilterSearch,
+}) => {
   const [searchText, setSearchText] = useState("");
-  const [result, setResult] = useState([]);
-  const [resultsOpen, setResultsOpen] = useState(false);
   const inputRef = useRef(null);
   const resultsContainerRef = useRef(null);
-
-  const [location, setLocation] = useState("");
-  const [category, setCategory] = useState("");
-  const [rate, setRate] = useState("");
-  const [minPrice, setMinPrice] = useState("");
-  const [maxPrice, setMaxPrice] = useState("");
-  const [selectedDeliveryOption, setSelectedDeliveryOption] = useState([]);
-
-  const [updateFilters, setUpdateFilters] = useState({});
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -67,242 +164,211 @@ function SearchBox({
     };
   }, []);
 
-  const handleResultClick = (id) => {
-    setSelectedSkillId(id);
-    setResultsOpen(false);
-  };
-
-  const handleDoneClick = () => {
-    setResultsOpen(true);
-  };
-
-  const FilterBadge = ({ label, value }) => {
-    const [isVisible, setIsVisible] = useState(!!value);
-
-    const handleRemove = () => {
-      onBadgeFilterRemove();
-      setIsVisible(false);
-      setResultsOpen(true);
-    };
-
-    const onBadgeFilterRemove = () => {
-      switch (label) {
-        case "Location":
-          setLocation("");
-          setFilters({ ...filters, location: null });
-          break;
-        case "Category":
-          setCategory("");
-          setFilters({ ...filters, category: null });
-          break;
-        case "Rate":
-          setRate("");
-          setFilters({ ...filters, rate: "" });
-          break;
-        case "Delivery":
-          setSelectedDeliveryOption({});
-          setFilters({
-            ...filters,
-            deliveryOnline: false,
-            deliveryInPerson: false,
-          });
-          break;
-        default:
-          break;
-      }
-    };
-
-    if (isVisible) {
-      return (
-        <>
-          <div class="flex items-center space-x-2">
-            <span class="text-base inline-block py-2 px-2.5 leading-none text-center whitespace-nowrap align-baseline font-bold bg-neonPink text-white rounded-full flex justify-between items-center">
-              {value}
-              <button
-                type="button"
-                onClick={handleRemove}
-                aria-label="Remove"
-                class="ml-2 text-xs py-0.5 px-1 leading-none bg-transparent rounded-full"
-              >
-                <i className="text-gray-100 text-opacity-50 sm:text-opacity-75 hover:text-opacity-100 fa-solid fa-circle-xmark"></i>
-              </button>
-            </span>
-          </div>
-        </>
-      );
-    } else {
-      return null;
-    }
-  };
-
   const capitalizeFirstLetter = (str) => {
     if (!str) return str;
     return str.charAt(0).toUpperCase() + str.slice(1);
   };
 
+  const isFiltersEmpty = (filters) => {
+    return Object.values(filters).every((value) => {
+      if (Array.isArray(value)) return value.length === 0;
+      if (typeof value === "string") return value.trim() === "";
+      return false;
+    });
+  };
 
   return (
     <div className="relative ">
       <div className="grid grid-cols-3 gap-1">
         <div className="col-span-2">
-          <SearchInput
+          <SearchInputComponent
             searchText={searchText}
             setSearchText={setSearchText}
-            closeResults={() => setResultsOpen(false)}
-            inputRef={inputRef}
             setResultsOpen={setResultsOpen}
             resultsOpen={resultsOpen}
+            setIsSkillSearch={setIsSkillSearch}
           />
         </div>
         <div className="col-span-1">
-          <Filter
-            location={location}
-            setLocation={setLocation}
-            category={category}
-            setCategory={setCategory}
-            rate={rate}
-            setRate={setRate}
-            minPrice={minPrice}
-            setMinPrice={setMinPrice}
-            maxPrice={maxPrice}
-            setMaxPrice={setMaxPrice}
-            selectedDeliveryOption={selectedDeliveryOption}
-            setSelectedDeliveryOption={setSelectedDeliveryOption}
-            searchText={searchText}
+          <FilterComponent
             filters={filters}
             setFilters={setFilters}
-            updateFilters={updateFilters}
-            handleDoneClick={handleDoneClick}
+            locationList={locationList}
+            categoriesList={categoriesList}
+            setIsFilterSearch={setIsFilterSearch}
+            setResultsOpen={setResultsOpen}
           />
         </div>
       </div>
       <div className="grid grid-cols-1 my-2">
+        <div
+          className={`text-center ${
+            isFiltersEmpty(filters) ? "hidden" : "block"
+          }`}
+        >
+          <span className="text-center my-2 text-fontColor">Filters</span>
+        </div>
         <div className="flex flex-wrap gap-2">
           <FilterBadge
             label="Location"
-            value={filters.location?.city ? filters.location.city : ""}
+            value={filters.location?.city}
+            setFilters={setFilters}
+            setResultsOpen={setResultsOpen}
+            setSelectedSkillId={setSelectedSkillId}
           />
           <FilterBadge
             label="Category"
             value={filters.category ? filters.category.name : ""}
+            setFilters={setFilters}
+            setResultsOpen={setResultsOpen}
+            setSelectedSkillId={setSelectedSkillId}
           />
           <FilterBadge
             label="Rate"
             value={
               filters.rate === null
-                ? "Any"
+                ? "Any rate"
                 : filters.rate
                 ? capitalizeFirstLetter(filters.rate.replace(/_/g, " "))
                 : ""
             }
+            setFilters={setFilters}
+            setResultsOpen={setResultsOpen}
+            setSelectedSkillId={setSelectedSkillId}
           />
           <FilterBadge
             label="Delivery"
             value={
-              filters.deliveryOnline && filters.deliveryInPerson
-                ? "Online and In Person"
-                : filters.deliveryOnline
-                ? "Online"
-                : filters.deliveryInPerson
-                ? "In Person"
+              filters.selectedDeliveryOption.deliveryOnline == false &&
+              filters.selectedDeliveryOption.deliveryInPerson == false
+                ? "Any type of delivery"
+                : filters.selectedDeliveryOption.deliveryOnline
+                ? "Delivery online"
+                : filters.selectedDeliveryOption.deliveryInPerson
+                ? "Delivery in person"
                 : ""
             }
+            setFilters={setFilters}
+            setResultsOpen={setResultsOpen}
+            setSelectedSkillId={setSelectedSkillId}
           />
         </div>
-
-        {resultsOpen && (
+        <div
+          className={
+            (searchText && resultsOpen) ||
+            ((isSkillSearch || isFilterSearch) && resultsOpen)
+              ? "block"
+              : "hidden"
+          }
+        >
           <SearchResults
             searchText={searchText}
             filters={filters}
-            setFilters={setFilters}
-            result={result}
-            setResult={setResult}
-            selectedSkillId={selectedSkillId}
             setSelectedSkillId={setSelectedSkillId}
-            resultsContainerRef={resultsContainerRef}
-            handleResultClick={handleResultClick}
+            setResultsOpen={setResultsOpen}
+            isSkillSearch={isSkillSearch}
+            isFilterSearch={isFilterSearch}
           />
-        )}
-        <div class="my-1">
-          {!selectedSkillId && (
-            <FilterOnStartup
-              location={location}
-              setLocation={setLocation}
-              category={category}
-              setCategory={setCategory}
-              rate={rate}
-              setRate={setRate}
-              minPrice={minPrice}
-              setMinPrice={setMinPrice}
-              maxPrice={maxPrice}
-              setMaxPrice={setMaxPrice}
-              selectedDeliveryOption={selectedDeliveryOption}
-              setSelectedDeliveryOption={setSelectedDeliveryOption}
-              searchText={searchText}
-              setFilters={setFilters}
-              filters={filters}
-              setUpdateFilters={setFilters}
-              handleDoneClick={handleDoneClick}
-            />
-          )}
         </div>
       </div>
     </div>
   );
-}
+};
 
-function SearchInput({
+const SearchInputComponent = ({
   searchText,
   setSearchText,
-  inputRef,
   setResultsOpen,
   resultsOpen,
-}) {
-  const handleChange = (e) => {
-    const searchText = e.target.value;
-    setSearchText(searchText);
-    setResultsOpen(true);
+  setIsSkillSearch,
+}) => {
+  const handleSearch = (e) => {
+    setSearchText(e.target.value);
   };
 
   const handleInputClick = () => {
-    if (!resultsOpen && searchText.trim() !== "") {
+    if (!resultsOpen) {
       setResultsOpen(true);
     }
   };
 
-  return (
-    <div ref={inputRef} className="relative">
-      <div className="flex justify-between items-center">
-        <div className="relative">
-          <span className="absolute inset-y-0 left-0 flex items-center pl-3">
-            <i className="fa-solid fa-search text-neonPink"></i>
-          </span>
-        </div>
-        <input
-          id="searchBar"
-          name="searchBar"
-          type="text"
-          className="w-full border border-gray-300 rounded-md py-2 px-10 pr-4 pl-10 focus:outline-none focus:border-neonPink"
-          value={searchText}
-          onChange={handleChange}
-          onClick={handleInputClick}
-          placeholder="Search"
-        />
+  const handleInputBlur = () => {
+    setTimeout(() => {
+      setResultsOpen(false);
+    }, 200);
+  };
+
+   const handleClear = () => {
+    setSearchText("");
+  };
+
+ return (
+    <div className="relative w-full">
+      <input
+        type="text"
+        className="w-full border border-gray-300 rounded-md py-2 pr-10 pl-10 focus:outline-none focus:border-neonPink"
+        value={searchText}
+        onChange={handleSearch}
+        onClick={handleInputClick}
+        onBlur={handleInputBlur}
+        placeholder="Search skills. Type at least 3 letters"
+      />
+      <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">
+        <svg
+          className="w-4 h-4 text-neonPink"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth="2"
+            d="M21 21l-4.35-4.35m1.65-5.65a7 7 0 11-14 0 7 7 0 0114 0z"
+          ></path>
+        </svg>
       </div>
+      {searchText && (
+        <button
+          type="button"
+          onClick={handleClear}
+          className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-neonPink focus:outline-none"
+        >
+          <svg
+            className="w-4 h-4 text-neonPink"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="2"
+              d="M6 18L18 6M6 6l12 12"
+            ></path>
+          </svg>
+        </button>
+      )}
     </div>
   );
-}
+};
 
-function SearchResults({
+const SearchResults = ({
   searchText,
   filters,
-  setFilters,
-  result,
-  setResult,
-  resultsContainerRef,
-  handleResultClick,
-}) {
+  setSelectedSkillId,
+  isSkillSearch,
+  setResultsOpen,
+  setIsSkillSearch,
+  isFilterSearch,
+}) => {
   const [loading, setLoading] = useState(false);
+  const [results, setResults] = useState([]);
+  const resultsRef = useRef(null);
+
+  const debouncedSearchText = useDebounce(searchText, 500);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -312,17 +378,12 @@ function SearchResults({
 
       const requestBody = {
         text: searchText,
-        categoryId:
-          filters.category && filters.category.id ? filters.category.id : "",
+        categoryId: filters.category?.id || "",
         deliveryInPerson: filters.deliveryInPerson || false,
         deliveryOnline: filters.deliveryOnline || false,
         rate: filters.rate || "",
-        location: filters.location ? filters.location : null,
-        // minPrice: filters.minPrice || "",
-        // maxPrice: filters.maxPrice || "",
+        location: filters.location || null,
       };
-
-      // console.log(requestBody);
 
       try {
         const response = await fetch(`${baseUrl}/search`, {
@@ -331,17 +392,10 @@ function SearchResults({
             "Content-Type": "application/json",
           },
           body: JSON.stringify(requestBody),
-          // signal: controller.signal,
+          signal: controller.signal,
         });
-
-        // console.log(requestBody);
-
-        if (!response.ok) {
-          throw new Error("Network response was not ok");
-        }
-
         const data = await response.json();
-        setResult(data);
+        setResults(data);
       } catch (error) {
         console.error("Error:", error);
         swal.fire({
@@ -354,87 +408,616 @@ function SearchResults({
       }
     };
 
-    if (searchText.trim().length >= 3) {
-      fetchResults(searchText);
+    if (isSkillSearch || isFilterSearch) {
+      fetchResults();
+    } else if (debouncedSearchText.trim().length >= 3) {
+      fetchResults(debouncedSearchText);
     }
 
-    // fetchResults(searchText);
-
     return () => controller.abort();
-  }, [searchText, filters]);
+  }, [debouncedSearchText, filters, isSkillSearch, isFilterSearch]);
 
-  const ResultList = ({ image, name, id }) => {
-    const handleClick = () => {
-      handleResultClick(id);
+  const handleClick = (id) => {
+    setSelectedSkillId(id);
+    setResultsOpen(false);
+  };
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (resultsRef.current && !resultsRef.current.contains(event.target)) {
+        setResultsOpen(false);
+      }
     };
 
-    return (
-      <tr
-        className="cursor-pointer hover:bg-gray-200 text-fontColor hover:text-neonPink"
-        onClick={handleClick}
-      >
-        <td className="p-2">
-          <img
-            src={image}
-            alt="Result"
-            className="w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20 object-cover rounded-full"
-          />
-        </td>
-        <td className="p-2 text-xs md:text-xl">
-          <div className="grid grid-cols-3">
-            <span className="col-span-2">{name}</span>
-            <i className="fa-solid fa-chevron-right text-right"></i>
-          </div>
-        </td>
-      </tr>
-    );
-  };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [resultsRef]);
 
   return (
     <div
-      ref={resultsContainerRef}
-      id="results-container"
-      className="-mt-3 w-full absolute bg-white rounded-md  shadow-lg  z-10 mt-2"
+      ref={resultsRef}
+      className="-mt-3 w-full bg-white rounded-md shadow-lg mt-2 max-h-96 z-10 absolute w-full"
       style={{
-        maxHeight: "50vh",
         overflowY: "scroll",
+        scrollbarWidth: "none",
+        scrollbarColor: "#FD3BB0 transparent",
+        scrollbarWidth: "thin",
+      }}
+    >
+      <div className="w-full">
+        {results.map(
+          (item, index) =>
+            (searchText || isSkillSearch || isFilterSearch) && (
+              <div
+                key={index}
+                className="grid grid-cols-4 gap-4 cursor-pointer hover:bg-gray-200 text-fontColor hover:text-neonPink p-2"
+                onClick={() => {
+                  handleClick(item.id);
+                }}
+              >
+                <div className="flex items-center justify-center">
+                  <img
+                    src={item.image}
+                    alt="Result"
+                    className="w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20 object-cover rounded-full"
+                  />
+                </div>
+                <div className="col-span-3 flex items-center justify-between text-xs md:text-xl">
+                  <span>{item.name}</span>
+                  <i className="fa-solid fa-chevron-right"></i>
+                </div>
+              </div>
+            )
+        )}
+      </div>
+      <div className="text-center text-neonPink mt-4">
+        {loading ? (
+          <div className="animate-pulse">
+            <i className="fas fa-spinner fa-spin text-xl"></i>
+            <p>Loading...</p>
+          </div>
+        ) : results.length === 0 ? (
+          <div>
+            <i className="fas fa-exclamation-circle text-xl"></i>
+            <p>
+              No skills found based on your search. Try adjusting your filters.
+            </p>
+          </div>
+        ) : null}
+      </div>
+    </div>
+  );
+};
+const FilterComponent = ({
+  filters,
+  setFilters,
+  locationList,
+  categoriesList,
+  setIsFilterSearch,
+  setResultsOpen,
+}) => {
+  const [isModalOpened, setIsModalOpened] = useState(false);
+  const [filterName, setFilterName] = useState();
+  const [selectedFilter, setSelectedFilter] = useState(null);
+
+  const options = [
+    { label: "Location" },
+    { label: "Category" },
+    { label: "Price" },
+    { label: "Delivery" },
+  ];
+
+  const showModal = () => {
+    setIsModalOpened(!isModalOpened);
+  };
+
+  const handleFilterSelect = (filter) => {
+    setSelectedFilter(filter);
+    setFilterName(`${filter}(Filter)`);
+  };
+
+  const handleReset = () => {
+    setSelectedFilter(null);
+    setFilters({
+      ...filters,
+      location: "",
+      category: "",
+      rate: "",
+      deliveryInPerson: false,
+      deliveryOnline: false,
+      minPrice: "",
+      maxPrice: "",
+    });
+  };
+
+  const handleBack = () => {
+    setSelectedFilter(null);
+    setFilterName("Filter");
+  };
+
+  const handleDone = () => {
+    setSelectedFilter(null);
+    setIsModalOpened(false);
+    setIsFilterSearch(true);
+    setResultsOpen(true);
+  };
+
+  return (
+    <>
+      <button
+        type="button"
+        className="flex justify-between items-center w-full border bg-neonPink text-white border-gray-300 rounded-md py-2 px-4 focus:outline-none focus:border-gray-300"
+        onClick={showModal}
+      >
+        <span>Filter</span>
+        <i className="fa-solid fa-filter text-white-400"></i>
+      </button>
+
+      {isModalOpened && (
+        <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex justify-center items-center z-20">
+          <div className="bg-white rounded-lg p-6 w-full max-w-lg">
+            <div className="flex justify-between items-center mb-4">
+              <a
+                type="button"
+                className="text-materialPurple cursor-pointer"
+                onClick={handleBack}
+              >
+                {selectedFilter && (
+                  <i className="fa-solid fa-chevron-left text-neonPink"></i>
+                )}
+              </a>
+              <h2 className="text-lg font-semibold text-materialPurple">
+                {filterName}
+              </h2>
+              <div className="flex space-x-4 font-bold">
+                <button
+                  type="button"
+                  className="text-neonPink text-lg"
+                  onClick={handleReset}
+                >
+                  Reset
+                </button>
+                <button className="text-neonPink text-lg" onClick={handleDone}>
+                  Done
+                </button>
+              </div>
+            </div>
+            <div>
+              {selectedFilter ? (
+                <div>
+                  {selectedFilter === "Location" && (
+                    <LocationFilter
+                      filters={filters}
+                      setFilters={setFilters}
+                      locationList={locationList}
+                    />
+                  )}
+                  {selectedFilter === "Category" && (
+                    <CategoryFilter
+                      filters={filters}
+                      setFilters={setFilters}
+                      categoriesList={categoriesList}
+                    />
+                  )}
+                  {selectedFilter === "Price" && (
+                    <PriceFilter filters={filters} setFilters={setFilters} />
+                  )}
+                  {selectedFilter === "Delivery" && (
+                    <DeliveryFilter filters={filters} setFilters={setFilters} />
+                  )}
+                </div>
+              ) : (
+                <div>
+                  {options.map((option, index) => (
+                    <>
+                      <a
+                        key={index}
+                        className="flex justify-between py-3 block text-lg text-materialPurple w-full max-w-lg cursor-pointer hover:bg-gray-100 transition-colors duration-200"
+                        onClick={() => handleFilterSelect(option.label)}
+                      >
+                        <span className="flex-grow mx-2">{option.label}</span>
+                        <i className="fa-solid fa-chevron-right text-neonPink"></i>
+                      </a>
+                      <hr className="bg-materialPurple" />
+                    </>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  );
+};
+
+const LocationFilter = ({ filters, setFilters, locationList }) => {
+  const handleFilterSelect = (location) => {
+    setFilters((prevFilters) => ({
+      ...prevFilters,
+      location,
+    }));
+  };
+
+  const areLocationsEqual = (location1, location2) => {
+    if (!location1 || !location2) return false;
+    return (
+      location1.city === location2.city &&
+      location1.country === location2.country
+    );
+  };
+
+  if (locationList.length <= 0) {
+    return <div className=""></div>;
+  }
+
+  return (
+    <div
+      className="max-h-128 overflow-y-scroll"
+      style={{
         scrollbarWidth: "none",
         scrollbarColor: "transparent transparent",
       }}
     >
-      <table className="w-full">
-        <tbody>
-          {result.map((item, index) => (
-            <ResultList
-              key={index}
-              image={item.image}
-              name={item.name}
-              id={item.id}
-            />
-          ))}
-        </tbody>
-      </table>
-      {loading && (
-        <div className="animate-pulse">
-          <div className="text-center text-neonPink">
-            <i className="fas fa-spinner fa-spin text-xl"></i>
-          </div>
-          <div className="text-center text-neonPink">
-            <p>Loading...</p>
-          </div>
-        </div>
-      )}
-      {result.length > 5 && (
-        <div className="animate-bounce text-center text-neonPink">
-          <i className="fas fa-chevron-down text-xl"></i>
-        </div>
-      )}
+      {locationList.map((item) => {
+        const isSelected = areLocationsEqual(filters.location, item);
+
+        return (
+          <a
+            key={item.city}
+            href="#"
+            onClick={(e) => {
+              e.preventDefault();
+              handleFilterSelect(item);
+            }}
+            className="flex justify-between py-3 text-lg text-materialPurple w-full max-w-xl cursor-pointer hover:bg-gray-100 transition-colors duration-200"
+          >
+            {item.city}
+            <span className="float-right text-white">
+              <i
+                className={`fa fa-circle ${
+                  isSelected
+                    ? "border-materialPurple border-2 text-neonPink border-materialPurple bg-neonPink rounded-full"
+                    : "border-neonPink border-2 text-white border-materialPurple rounded-full"
+                }`}
+              ></i>
+            </span>
+          </a>
+        );
+      })}
     </div>
   );
-}
+};
 
-function Details({ selectedSkillId }) {
-  const [data, setData] = useState({ category: {} });
+const CategoryFilter = ({ filters, setFilters, categoriesList }) => {
+  const handleFilterSelect = (category) => {
+    setFilters((prevFilters) => ({
+      ...prevFilters,
+      category,
+    }));
+  };
+
+  const areCategoriesEqual = (category1, category2) => {
+    if (!category1 || !category2) return false;
+    return category1.id === category2.id && category1.name === category2.name;
+  };
+
+  if (categoriesList.length <= 0) {
+    return <div className="animate-pulse"></div>;
+  }
+
+  return (
+    <div
+      className="max-h-128 overflow-y-scroll"
+      style={{
+        scrollbarColor: "#FD3BB0 transparent",
+        scrollbarWidth: "thin",
+      }}
+    >
+      {categoriesList.map((item) => {
+        const isSelected = areCategoriesEqual(filters.category, item);
+
+        return (
+          <div
+            key={item.id}
+            className="grid grid-cols-[10%,auto] gap-5 my-6 cursor-pointer hover:bg-gray-100 transition-colors duration-200"
+          >
+            <div className="rounded-full mx-1 my-2 bg-opaquePink flex justify-center items-center w-10 h-10 mt-1">
+              <svg
+                className="w-5"
+                viewBox="0 0 30 35"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M11.5 20.4026C-2.5 12.5 6.5 -3 23 5.90261M3 27.9026C15.8802 38.3608 39 27 18.5 14.4026"
+                  stroke="#FE009C"
+                  strokeWidth="6"
+                  strokeLinecap="round"
+                />
+              </svg>
+            </div>
+            <button
+              onClick={() => handleFilterSelect(item)}
+              className="flex justify-between py-3 px-2 text-lg text-materialPurple w-full max-w-xl"
+            >
+              {item.name}
+              <span className="float-right text-white">
+                <i
+                  className={`mt-1 fa-solid fa-chevron-right ${
+                    isSelected ? "text-neonPink" : "text-materialPurple"
+                  }`}
+                ></i>
+              </span>
+            </button>
+          </div>
+        );
+      })}
+    </div>
+  );
+};
+
+const PriceFilter = ({ filters, setFilters }) => {
+  const rates = [
+    {
+      label: "Any",
+      value: null,
+    },
+    {
+      label: "Fixed cost",
+      value: "fixed_cost",
+    },
+    {
+      label: "Hourly",
+      value: "hourly",
+    },
+  ];
+
+  const handleRateChange = (value) => {
+    setFilters((prevFilters) => ({
+      ...prevFilters,
+      rate: value,
+    }));
+  };
+
+  const handleMinPriceChange = (e) => {
+    setFilters((prevFilters) => ({
+      ...prevFilters,
+      minPrice: e.target.value,
+    }));
+  };
+
+  const handleMaxPriceChange = (e) => {
+    setFilters((prevFilters) => ({
+      ...prevFilters,
+      maxPrice: e.target.value,
+    }));
+  };
+
+  const RadioButton = ({ label, value }) => {
+    const isSelected = filters.rate === value;
+
+    return (
+      <a
+        href="#"
+        onClick={(e) => {
+          e.preventDefault();
+          handleRateChange(value);
+        }}
+        className={`text-lg py-3 block text-materialPurple border-b-2 border-materialPurpleOpaque ${
+          isSelected ? "border-neonPink text-neonPink" : ""
+        }`}
+      >
+        {label}
+        <span className="float-right text-white">
+          <i
+            className={`fa fa-circle ${
+              isSelected
+                ? "border-materialPurple border-2 text-neonPink border-materialPurple bg-neonPink rounded-full"
+                : "border-neonPink border-2 text-white border-materialPurple rounded-full"
+            }`}
+          ></i>
+        </span>
+      </a>
+    );
+  };
+
+  return (
+    <div className="space-y-2">
+      <h1 className="text-xl font-bold text-materialPurple">Rate</h1>
+
+      {rates.map((option) => (
+        <RadioButton
+          key={option.value}
+          value={option.value}
+          label={option.label}
+        />
+      ))}
+
+      {/* <h1 className="text-xl font-bold text-materialPurple">Price range</h1>
+      <div className="flex justify-between">
+        <input
+          type="number"
+          placeholder="Min"
+          value={minPrice}
+          onChange={handleMinPriceChange}
+          className="w-1/2 mx-2 border-b-2 border-materialPurpleOpaque focus:border-transparent focus:outline-none focus:ring-0"
+        />
+
+        <input
+          type="number"
+          placeholder="Max"
+          value={maxPrice}
+          onChange={handleMaxPriceChange}
+          className="w-1/2 mx-2 border-b-2 border-materialPurpleOpaque focus:border-transparent focus:outline-none focus:ring-0"
+        />
+      </div> */}
+    </div>
+  );
+};
+
+const DeliveryFilter = ({ filters, setFilters }) => {
+  const deliveryOptions = [
+    {
+      label: "Any",
+      value: {
+        deliveryOnline: false,
+        deliveryInPerson: false,
+      },
+    },
+    {
+      label: "Online",
+      value: {
+        deliveryOnline: true,
+        deliveryInPerson: false,
+      },
+    },
+    {
+      label: "In person",
+      value: {
+        deliveryInPerson: true,
+        deliveryOnline: false,
+      },
+    },
+  ];
+
+  const handleDeliveryChange = (value) => {
+    setFilters((prevFilters) => ({
+      ...prevFilters,
+      selectedDeliveryOption: value,
+    }));
+  };
+
+  const RadioButton = ({ label, value }) => {
+    const isSelected =
+      filters.selectedDeliveryOption &&
+      filters.selectedDeliveryOption.deliveryOnline === value.deliveryOnline &&
+      filters.selectedDeliveryOption.deliveryInPerson ===
+        value.deliveryInPerson;
+
+    return (
+      <a
+        href="#"
+        onClick={(e) => {
+          e.preventDefault();
+          handleDeliveryChange(value);
+        }}
+        className={`text-lg block py-3 text-materialPurple border-b-2 border-materialPurpleOpaque ${
+          isSelected ? "border-neonPink text-neonPink" : ""
+        }`}
+      >
+        {label}
+        <span className="float-right text-white">
+          <i
+            className={`fa fa-circle ${
+              isSelected
+                ? "border-materialPurple border-2 text-neonPink border-materialPurple bg-neonPink rounded-full"
+                : "border-neonPink border-2 text-white border-materialPurple rounded-full"
+            }`}
+          ></i>
+        </span>
+      </a>
+    );
+  };
+
+  return (
+    <div className="space-y-2">
+      <h1 className="text-xl font-bold text-materialPurple">
+        Delivery Options
+      </h1>
+      {deliveryOptions.map((option) => (
+        <RadioButton
+          key={option.value}
+          value={option.value}
+          label={option.label}
+        />
+      ))}
+    </div>
+  );
+};
+
+const FilterBadge = ({
+  label,
+  value,
+  setFilters,
+  setResultsOpen,
+  setSelectedSkillId,
+}) => {
+  const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    if (value !== undefined && value !== "") {
+      setIsVisible(true);
+    } else {
+      setIsVisible(false);
+    }
+  }, [value]);
+
+  const handleRemove = () => {
+    onBadgeFilterRemove();
+    setIsVisible(false);
+    setResultsOpen(false);
+    setSelectedSkillId(null);
+  };
+
+  const onBadgeFilterRemove = () => {
+    switch (label) {
+      case "Location":
+        setFilters((prevFilters) => ({
+          ...prevFilters,
+          location: "",
+        }));
+        break;
+      case "Category":
+        setFilters((prevFilters) => ({
+          ...prevFilters,
+          category: "",
+        }));
+        break;
+      case "Rate":
+        setFilters((prevFilters) => ({
+          ...prevFilters,
+          rate: "",
+        }));
+        break;
+      case "Delivery":
+        setFilters((prevFilters) => ({
+          ...prevFilters,
+          selectedDeliveryOption: [],
+        }));
+        break;
+      default:
+        break;
+    }
+  };
+
+  if (isVisible) {
+    return (
+      <>
+        <div class="flex items-center space-x-2">
+          <span class="text-base inline-block py-2 px-2.5 leading-none text-center whitespace-nowrap align-baseline font-bold bg-neonPink text-white rounded-full flex justify-between items-center">
+            {value}
+            <button
+              type="button"
+              onClick={handleRemove}
+              aria-label="Remove"
+              class="ml-2 text-xs py-0.5 px-1 leading-none bg-transparent rounded-full"
+            >
+              <i className="text-gray-100 text-opacity-50 sm:text-opacity-75 hover:text-opacity-100 fa-solid fa-circle-xmark"></i>
+            </button>
+          </span>
+        </div>
+      </>
+    );
+  } else {
+    return null;
+  }
+};
+
+const Details = ({ selectedSkillId }) => {
+  const [data, setData] = useState({});
   const [imageUrls, setImageUrls] = useState([]);
   const [loading, setLoading] = useState(true);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -447,13 +1030,6 @@ function Details({ selectedSkillId }) {
           fetch(`${baseUrl}/getOne?id=${selectedSkillId}`),
           fetch(`${baseUrl}/getSkillImages?id=${selectedSkillId}`),
         ]);
-
-        if (!detailsResponse.ok) {
-          throw new Error("Network response for details was not ok");
-        }
-        if (!imagesResponse.ok) {
-          throw new Error("Network response for images was not ok");
-        }
 
         const [detailsData, imagesData] = await Promise.all([
           detailsResponse.json(),
@@ -625,901 +1201,101 @@ function Details({ selectedSkillId }) {
       </div>
     </div>
   );
-}
+};
 
-function Filter({
-  location,
-  setLocation,
-  category,
-  setCategory,
-  rate,
-  setRate,
-  minPrice,
-  setMinPrice,
-  maxPrice,
-  setMaxPrice,
-  selectedDeliveryOption,
-  setSelectedDeliveryOption,
-  searchText,
+const CategoriesComponent = ({
+  categoriesList,
   filters,
   setFilters,
-  handleDoneClick,
-}) {
-  const [showOptions, setShowOptions] = useState(false);
-
-  const toggleOptions = () => {
-    setShowOptions(!showOptions);
-  };
-
-  const filterOptions = [
-    { label: "Location" },
-    { label: "Category" },
-    { label: "Price" },
-    { label: "Delivery" },
-  ];
-
-  return (
-    <div className="grid">
-      <button
-        type="button"
-        className="flex justify-between items-center w-full border bg-neonPink text-white border-gray-300 rounded-md py-2 px-4 focus:outline-none focus:border-gray-300"
-        onClick={toggleOptions}
-      >
-        <span>Filter</span>
-        <i className="fa-solid fa-filter text-white-400"></i>
-      </button>
-      <FilterModal
-        isOpen={showOptions}
-        onClose={toggleOptions}
-        options={filterOptions}
-        location={location}
-        setLocation={setLocation}
-        category={category}
-        setCategory={setCategory}
-        rate={rate}
-        setRate={setRate}
-        minPrice={minPrice}
-        setMinPrice={setMinPrice}
-        maxPrice={maxPrice}
-        setMaxPrice={setMaxPrice}
-        selectedDeliveryOption={selectedDeliveryOption}
-        setSelectedDeliveryOption={setSelectedDeliveryOption}
-        searchText={searchText}
-        setFilters={setFilters}
-        filters={filters}
-        updateFilters={setFilters}
-        handleDoneClick={handleDoneClick}
-      />
-    </div>
-  );
-}
-
-function FilterOnStartup({
-  location,
-  setLocation,
-  category,
-  setCategory,
-  rate,
-  setRate,
-  minPrice,
-  setMinPrice,
-  maxPrice,
-  setMaxPrice,
-  selectedDeliveryOption,
-  setSelectedDeliveryOption,
-  setFilters,
-  setUpdateFilters,
-  handleDoneClick,
-}) {
-  const [filterName, setFilterName] = useState("");
-  const [selectedFilter, setSelectedFilter] = useState(null);
-
-  return (
-    <>
-      <div className="grid grid-rows-1 gap-3">
-        <div>
-          <div>
-            <CategoryFilterStartUp
-              category={category}
-              setCategory={setCategory}
-              location={location}
-              setLocation={setLocation}
-              handleDoneClick={handleDoneClick}
-              setSelectedFilter={setSelectedFilter}
-              setUpdateFilters={setUpdateFilters}
-              rate={rate}
-              minPrice={minPrice}
-              maxPrice={minPrice}
-              selectedDeliveryOption={selectedDeliveryOption}
-              setFilterName={setFilterName}
-            />
-          </div>
-        </div>
-      </div>
-    </>
-  );
-}
-
-function FilterModal({
-  isOpen,
-  onClose,
-  options,
-  location,
-  setLocation,
-  category,
-  setCategory,
-  rate,
-  setRate,
-  minPrice,
-  setMinPrice,
-  maxPrice,
-  setMaxPrice,
-  selectedDeliveryOption,
-  setSelectedDeliveryOption,
-  searchText,
-  setFilters,
-  filters,
-  updateFilters,
-  handleDoneClick,
-}) {
-  const [filterName, setFilterName] = useState();
-  const [selectedFilter, setSelectedFilter] = useState(null);
-
-  const handleFilterSelect = (filter) => {
-    setSelectedFilter(filter);
-    setFilterName(`${filter}(Filter)`);
-  };
-
-  const handleReset = () => {
-    setSelectedFilter(null);
-    setLocation("");
-    setCategory("");
-    setRate("");
-    setMinPrice("");
-    setMaxPrice("");
-    setSelectedDeliveryOption({});
-    setFilters({});
-  };
-
-  const handleBack = () => {
-    setSelectedFilter(null);
-    setFilterName("Filter");
-  };
-
-  const handleDone = () => {
-    onClose();
-    updateFilters({
-      location,
+  setResultsOpen,
+  setIsSkillSearch,
+}) => {
+  const handleFilterSelect = (category) => {
+    setFilters((prevFilters) => ({
+      ...prevFilters,
       category,
-      rate,
-      minPrice,
-      maxPrice,
-      ...selectedDeliveryOption,
-    });
-    setSelectedFilter(null);
-    handleDoneClick();
+    }));
+    setIsSkillSearch(true);
+    setResultsOpen(true);
   };
 
-  if (!isOpen) return null;
-
-  return (
-    <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex justify-center items-center">
-      <div className="bg-white rounded-lg p-6 w-full max-w-lg">
-        <div className="flex justify-between items-center mb-4">
-          <a
-            type="button"
-            className="text-materialPurple cursor-pointer"
-            onClick={handleBack}
-          >
-            {selectedFilter && (
-              <i className="fa-solid fa-chevron-left text-neonPink"></i>
-            )}
-          </a>
-          <h2 className="text-lg font-semibold text-materialPurple">
-            {filterName}
-          </h2>
-          <div className="flex space-x-4 font-bold">
-            <button
-              type="button"
-              className="text-neonPink text-lg"
-              onClick={handleReset}
-            >
-              Reset
-            </button>
-            <button className="text-neonPink text-lg" onClick={handleDone}>
-              Done
-            </button>
-          </div>
-        </div>
-        <div>
-          {selectedFilter ? (
-            <div>
-              {selectedFilter === "Location" && (
-                <LocationFilter location={location} setLocation={setLocation} />
-              )}
-              {selectedFilter === "Category" && (
-                <CategoryFilter category={category} setCategory={setCategory} />
-              )}
-              {selectedFilter === "Price" && (
-                <PriceFilter
-                  rate={rate}
-                  setRate={setRate}
-                  minPrice={minPrice}
-                  setMinPrice={setMinPrice}
-                  maxPrice={maxPrice}
-                  setMaxPrice={setMaxPrice}
-                />
-              )}
-              {selectedFilter === "Delivery" && (
-                <DeliveryFilter
-                  selectedDeliveryOption={selectedDeliveryOption}
-                  setSelectedDeliveryOption={setSelectedDeliveryOption}
-                />
-              )}
-            </div>
-          ) : (
-            <div>
-              {options.map((option, index) => (
-                <>
-                  <a
-                    key={index}
-                    className="flex justify-between py-3 block text-lg text-materialPurple w-full max-w-lg cursor-pointer hover:bg-gray-100 transition-colors duration-200"
-                    onClick={() => handleFilterSelect(option.label)}
-                  >
-                    <span className="flex-grow mx-2">{option.label}</span>
-                    <i className="fa-solid fa-chevron-right text-neonPink"></i>
-                  </a>
-                  <hr className="bg-materialPurple" />
-                </>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function CategoryFilterStartUp({
-  category,
-  setCategory,
-  handleDoneClick,
-  setSelectedFilter,
-  setUpdateFilters,
-  location,
-  rate,
-  minPrice,
-  maxPrice,
-  selectedDeliveryOption,
-  setFilterName,
-}) {
-  const [categories, setCategories] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [isDone, setIsDone] = useState(false);
-
-  useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        const response = await fetch(`${baseUrl}/getCategories`);
-        if (!response.ok) {
-          throw new Error("Network response was not ok");
-        }
-        const data = await response.json();
-        setCategories(
-          data.map((category) => ({ id: category.id, name: category.name }))
-        );
-      } catch (error) {
-        swal.fire({
-          title: "Error",
-          text: "An error occurred while fetching results",
-          icon: "error",
-        });
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchCategories();
-  }, []);
-
-  const handleFilterSelect = (categories) => {
-    setCategory(categories);
-    setIsDone(true);
+  const areCategoriesEqual = (category1, category2) => {
+    if (!category1 || !category2) return false;
+    return category1.id === category2.id && category1.name === category2.name;
   };
 
-  useEffect(() => {
-    if (isDone && setUpdateFilters) {
-      handleDone();
-    }
-  }, [category]);
-
-  const handleDone = () => {
-    setUpdateFilters({
-      location,
-      category,
-      rate,
-      minPrice,
-      maxPrice,
-      ...selectedDeliveryOption,
-    });
-    setSelectedFilter(null);
-    setFilterName(null);
-    handleDoneClick();
-  };
-
-  const CategoryList = ({ categories }) => {
-    // const isSelected = categories.id === category.id;
-
-    const areCategoriesEqual = (category1, category2) => {
-      if (!category1 || !category2) return false;
-      return category1.id === category2.id && category1.name === category2.name;
-    };
-
-    const isSelected = areCategoriesEqual(category, categories);
-
-    return (
-      <>
-        <div className="grid grid-cols-[10%,auto] gap-5 my-6">
-          <div className="rounded-full bg-opaquePink flex justify-center items-center w-10 h-10 mt-1">
-            <svg
-              className="w-5"
-              viewBox="0 0 30 35"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M11.5 20.4026C-2.5 12.5 6.5 -3 23 5.90261M3 27.9026C15.8802 38.3608 39 27 18.5 14.4026"
-                stroke="#FE009C"
-                strokeWidth="6"
-                strokeLinecap="round"
-              />
-            </svg>
-          </div>
-
-          <a
-            href="#"
-            onClick={(e) => {
-              e.preventDefault();
-              handleFilterSelect(categories);
-            }}
-            className="flex justify-between py-3 text-lg  text-materialPurple w-full max-w-xl cursor-pointer hover:bg-gray-100 transition-colors duration-200"
-          >
-            {categories.name}
-            <span className="float-right text-white">
-              <i
-                className={`mt-1 fa-solid fa-chevron-right  ${
-                  isSelected ? "text-neonPink" : "text-materialPurple"
-                }`}
-              ></i>
-            </span>
-          </a>
-        </div>
-      </>
-    );
-  };
-
-  if (loading) {
-    return (
-      <div className="animate-pulse">
-        <div className="flex justify-between py-3 text-materialPurple w-full max-w-xl cursor-pointer hover:bg-gray-100 transition-colors duration-200">
-          <span className="flex-grow mx-2 bg-gray-300 h-6 rounded"></span>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <>
-      <img
-        className="my-2 pointer-events-none"
-        src="https://github.com/Jslquintero/test/blob/main/logo.png?raw=true"
-      />
-      <h1 className="text-materialPurple my-2">
-        ALL CATEGORIES ({categories.length})
-      </h1>
-      <div
-        class="max-h-130 overflow-y-scroll"
-        style={{
-          scrollbarColor: "#FD3BB0 transparent",
-          scrollbarWidth: "thin",
-        }}
-      >
-        {categories.map((item, index) => (
-          <CategoryList key={index} categories={item} />
-        ))}
-      </div>
-    </>
-  );
-}
-
-function CategoryFilter({
-  category,
-  setCategory,
-  handleDoneClick,
-  setSelectedFilter,
-  setUpdateFilters,
-  location,
-  rate,
-  minPrice,
-  maxPrice,
-  selectedDeliveryOption,
-  setFilterName,
-}) {
-  const [categories, setCategories] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [isDone, setIsDone] = useState(false);
-
-  useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        const response = await fetch(`${baseUrl}/getCategories`);
-        if (!response.ok) {
-          throw new Error("Network response was not ok");
-        }
-        const data = await response.json();
-        setCategories(
-          data.map((category) => ({ id: category.id, name: category.name }))
-        );
-      } catch (error) {
-        swal.fire({
-          title: "Error",
-          text: "An error occurred while fetching results",
-          icon: "error",
-        });
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchCategories();
-  }, []);
-
-  const handleFilterSelect = (categories) => {
-    setCategory(categories);
-    setIsDone(true);
-  };
-
-  useEffect(() => {
-    if (isDone && setUpdateFilters) {
-      handleDone();
-    }
-  }, [category]);
-
-  const handleDone = () => {
-    setUpdateFilters({
-      location,
-      category,
-      rate,
-      minPrice,
-      maxPrice,
-      ...selectedDeliveryOption,
-    });
-    setSelectedFilter(null);
-    setFilterName(null);
-    handleDoneClick();
-  };
-
-  const CategoryList = ({ categories }) => {
-    // const isSelected = categories.id === category.id;
-
-    const areCategoriesEqual = (category1, category2) => {
-      if (!category1 || !category2) return false;
-      return category1.id === category2.id && category1.name === category2.name;
-    };
-
-    const isSelected = areCategoriesEqual(category, categories);
-
-    return (
-      <a
-        href="#"
-        onClick={(e) => {
-          e.preventDefault();
-          handleFilterSelect(categories);
-        }}
-        className="flex justify-between py-3 text-lg  text-materialPurple w-full max-w-xl cursor-pointer hover:bg-gray-100 transition-colors duration-200"
-      >
-        {categories.name}
-        <span className="float-right text-white">
-          <i
-            className={`fa fa-circle ${
-              isSelected
-                ? "border-materialPurple border-2 text-neonPink border-materialPurple bg-neonPink rounded-full"
-                : "border-neonPink border-2 text-white border-materialPurple rounded-full"
-            }`}
-          ></i>
-        </span>
-      </a>
-    );
-  };
-
-  if (loading) {
-    return (
-      <div className="animate-pulse">
-        <div className="flex justify-between py-3 text-materialPurple w-full max-w-xl cursor-pointer hover:bg-gray-100 transition-colors duration-200">
-          <span className="flex-grow mx-2 bg-gray-300 h-6 rounded"></span>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div
-      class="max-h-128 overflow-y-scroll"
-      style={{
-        scrollbarColor: "#FD3BB0 transparent",
-        scrollbarWidth: "thin",
-      }}
-    >
-      {categories.map((item, index) => (
-        <CategoryList key={index} categories={item} />
-      ))}
-    </div>
-  );
-}
-
-function LocationFilter({
-  location,
-  setLocation,
-  handleDoneClick,
-  setSelectedFilter,
-  setUpdateFilters,
-  category,
-  rate,
-  minPrice,
-  maxPrice,
-  selectedDeliveryOption,
-  setFilterName,
-}) {
-  const [locations, setLocations] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [isDone, setIsDone] = useState(false);
-
-  useEffect(() => {
-    const fetchLocations = async () => {
-      try {
-        const response = await fetch(`${baseUrl}/getLocations`);
-        if (!response.ok) {
-          throw new Error("Network response was not ok");
-        }
-        const data = await response.json();
-        setLocations(data);
-      } catch (error) {
-        swal.fire({
-          title: "Error",
-          text: "An error occurred while fetching results",
-          icon: "error",
-        });
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchLocations();
-  }, []);
-
-  const handleFilterSelect = (location) => {
-    setLocation(location);
-    setIsDone(true);
-  };
-
-  useEffect(() => {
-    if (isDone && setUpdateFilters) {
-      handleDone();
-    }
-  }, [location]);
-
-  const handleDone = () => {
-    setUpdateFilters({
-      location,
-      category,
-      rate,
-      minPrice,
-      maxPrice,
-      ...selectedDeliveryOption,
-    });
-    setFilterName(null);
-    setSelectedFilter(null);
-    handleDoneClick();
-  };
-
-  const LocationList = ({ value }) => {
-    const areLocationsEqual = (location1, location2) => {
-      if (!location1 || !location2) return false;
-      return (
-        location1.city === location2.city &&
-        location1.country === location2.country
-      );
-    };
-
-    const isSelected = areLocationsEqual(location, value);
-
-    return (
-      <a
-        href="#"
-        onClick={(e) => {
-          e.preventDefault();
-          handleFilterSelect(value);
-        }}
-        className="flex justify-between py-3 text-lg text-materialPurple w-full max-w-xl cursor-pointer hover:bg-gray-100 transition-colors duration-200"
-      >
-        {value.city}
-        <span className="float-right text-white">
-          <i
-            className={`fa fa-circle ${
-              isSelected
-                ? "border-materialPurple border-2 text-neonPink border-materialPurple bg-neonPink rounded-full"
-                : "border-neonPink border-2 text-white border-materialPurple rounded-full"
-            }`}
-          ></i>
-        </span>
-      </a>
-    );
-  };
-
-  if (loading) {
-    return (
-      <div className="animate-pulse">
-        <div className="flex justify-between py-3 text-materialPurple w-full max-w-xl cursor-pointer hover:bg-gray-100 transition-colors duration-200">
-          <span className="flex-grow mx-2 bg-gray-300 h-6 rounded"></span>
-        </div>
-      </div>
-    );
+  if (categoriesList.length <= 0) {
+    return <div className="animate-pulse"></div>;
   }
 
   return (
     <div
       className="max-h-128 overflow-y-scroll"
       style={{
-        scrollbarWidth: "none",
-        scrollbarColor: "transparent transparent",
+        scrollbarColor: "#FD3BB0 transparent",
+        scrollbarWidth: "thin",
       }}
     >
-      {locations.map((item) => (
-        <LocationList key={item.city} value={item} />
-      ))}
+      {categoriesList.map((item) => {
+        const isSelected = areCategoriesEqual(filters.category, item);
+
+        return (
+          <div
+            key={item.id}
+            className="grid grid-cols-[10%,auto] gap-5 my-6 cursor-pointer hover:bg-gray-100 transition-colors duration-200"
+          >
+            <div className="rounded-full mx-1 my-2 bg-opaquePink flex justify-center items-center w-10 h-10 mt-1">
+              <svg
+                className="w-5"
+                viewBox="0 0 30 35"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M11.5 20.4026C-2.5 12.5 6.5 -3 23 5.90261M3 27.9026C15.8802 38.3608 39 27 18.5 14.4026"
+                  stroke="#FE009C"
+                  strokeWidth="6"
+                  strokeLinecap="round"
+                />
+              </svg>
+            </div>
+            <button
+              onClick={() => handleFilterSelect(item)}
+              className="flex justify-between py-3 px-2 text-lg text-materialPurple w-full max-w-xl"
+            >
+              {item.name}
+              <span className="float-right text-white">
+                <i
+                  className={`mt-1 fa-solid fa-chevron-right ${
+                    isSelected ? "text-neonPink" : "text-materialPurple"
+                  }`}
+                ></i>
+              </span>
+            </button>
+          </div>
+        );
+      })}
     </div>
   );
-}
+};
 
-function PriceFilter({
-  minPrice,
-  setMinPrice,
-  maxPrice,
-  setMaxPrice,
-  rate,
-  setRate,
-  handleDoneClick,
-  setSelectedFilter,
-  setUpdateFilters,
-  category,
-  location,
-  selectedDeliveryOption,
-  setFilterName,
-}) {
-  const rates = [
-    {
-      label: "Any",
-      value: null,
-    },
-    {
-      label: "Fixed cost",
-      value: "fixed_cost",
-    },
-    {
-      label: "Hourly",
-      value: "hourly",
-    },
-  ];
-
-  const [isDone, setIsDone] = useState(false);
-
-  const handleRateChange = (value) => {
-    setRate(value);
-    setIsDone(true);
-  };
-
-  const handleMinPriceChange = (e) => {
-    setMinPrice(e.target.value);
-  };
-
-  const handleMaxPriceChange = (e) => {
-    setMaxPrice(e.target.value);
-  };
+function useDebounce(value, delay) {
+  const [debouncedValue, setDebouncedValue] = useState(value);
 
   useEffect(() => {
-    if (isDone && setUpdateFilters) {
-      handleDone();
-    }
-  }, [minPrice, maxPrice, rate]);
+    const handler = setTimeout(() => {
+      setDebouncedValue(value);
+    }, delay);
 
-  const handleDone = () => {
-    setUpdateFilters({
-      location,
-      category,
-      rate,
-      minPrice,
-      maxPrice,
-      ...selectedDeliveryOption,
-    });
-    setSelectedFilter(null);
-    setFilterName(null);
-    handleDoneClick();
-  };
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [value, delay]);
 
-  const RadioButton = ({ label, value }) => {
-    const isSelected = rate === value;
-
-    return (
-      <a
-        href="#"
-        onClick={(e) => {
-          e.preventDefault();
-          handleRateChange(value);
-        }}
-        className={`text-lg py-3 block text-materialPurple border-b-2 border-materialPurpleOpaque ${
-          isSelected ? "border-neonPink text-neonPink" : ""
-        }`}
-      >
-        {label}
-        <span className="float-right text-white">
-          <i
-            className={`fa fa-circle ${
-              isSelected
-                ? "border-materialPurple border-2 text-neonPink border-materialPurple bg-neonPink rounded-full"
-                : "border-neonPink border-2 text-white border-materialPurple rounded-full"
-            }`}
-          ></i>
-        </span>
-      </a>
-    );
-  };
-
-  return (
-    <div className="space-y-2">
-      <h1 className="text-xl font-bold text-materialPurple">Rate</h1>
-
-      {rates.map((option) => (
-        <RadioButton
-          key={option.value}
-          value={option.value}
-          label={option.label}
-        />
-      ))}
-
-      {/* <h1 className="text-xl font-bold text-materialPurple">Price range</h1>
-      <div className="flex justify-between">
-        <input
-          type="number"
-          placeholder="Min"
-          value={minPrice}
-          onChange={handleMinPriceChange}
-          className="w-1/2 mx-2 border-b-2 border-materialPurpleOpaque focus:border-transparent focus:outline-none focus:ring-0"
-        />
-
-        <input
-          type="number"
-          placeholder="Max"
-          value={maxPrice}
-          onChange={handleMaxPriceChange}
-          className="w-1/2 mx-2 border-b-2 border-materialPurpleOpaque focus:border-transparent focus:outline-none focus:ring-0"
-        />
-      </div> */}
-    </div>
-  );
-}
-
-function DeliveryFilter({
-  selectedDeliveryOption,
-  setSelectedDeliveryOption,
-  minPrice,
-  setMinPrice,
-  maxPrice,
-  setMaxPrice,
-  rate,
-  setRate,
-  handleDoneClick,
-  setSelectedFilter,
-  setUpdateFilters,
-  category,
-  location,
-  setFilterName,
-}) {
-  const deliveryOptions = [
-    {
-      label: "Any",
-      value: {
-        deliveryOnline: false,
-        deliveryInPerson: false,
-      },
-    },
-    {
-      label: "Online",
-      value: {
-        deliveryOnline: true,
-        deliveryInPerson: false,
-      },
-    },
-    {
-      label: "In person",
-      value: {
-        deliveryInPerson: true,
-        deliveryOnline: false,
-      },
-    },
-  ];
-
-  const [isDone, setIsDone] = useState(false);
-
-  const handleDeliveryChange = (value) => {
-    setSelectedDeliveryOption(value);
-    setIsDone(true);
-  };
-
-  useEffect(() => {
-    if (isDone && setUpdateFilters) {
-      handleDone();
-    }
-  }, [selectedDeliveryOption]);
-
-  const handleDone = () => {
-    setUpdateFilters({
-      location,
-      category,
-      rate,
-      minPrice,
-      maxPrice,
-      ...selectedDeliveryOption,
-    });
-    setSelectedFilter(null);
-    setFilterName(null);
-    handleDoneClick();
-  };
-
-  const RadioButton = ({ label, value }) => {
-    const isSelected =
-      selectedDeliveryOption &&
-      selectedDeliveryOption.deliveryOnline === value.deliveryOnline &&
-      selectedDeliveryOption.deliveryInPerson === value.deliveryInPerson;
-
-    return (
-      <a
-        href="#"
-        onClick={() => handleDeliveryChange(value)}
-        className={`text-lg block py-3 text-materialPurple border-b-2 border-materialPurpleOpaque ${
-          isSelected ? "border-neonPink text-neonPink" : ""
-        }`}
-      >
-        {label}
-        <span className="float-right text-white">
-          <i
-            className={`fa fa-circle ${
-              isSelected
-                ? "border-materialPurple border-2 text-neonPink border-materialPurple bg-neonPink rounded-full"
-                : "border-neonPink border-2 text-white border-materialPurple rounded-full"
-            }`}
-          ></i>
-        </span>
-      </a>
-    );
-  };
-
-  return (
-    <div className="space-y-2">
-      <h1 className="text-xl font-bold text-materialPurple">
-        Delivery Options
-      </h1>
-      {deliveryOptions.map((option) => (
-        <RadioButton
-          key={option.value}
-          value={option.value}
-          label={option.label}
-        />
-      ))}
-    </div>
-  );
+  return debouncedValue;
 }
 
 ReactDOM.render(<App />, document.getElementById("search"));
-
 tailwind.config = {
   theme: {
     fontFamily: {
