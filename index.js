@@ -298,11 +298,11 @@ const SearchInputComponent = ({
     }, 200);
   };
 
-   const handleClear = () => {
+  const handleClear = () => {
     setSearchText("");
   };
 
- return (
+  return (
     <div className="relative w-full">
       <input
         type="text"
