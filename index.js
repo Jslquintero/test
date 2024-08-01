@@ -19,99 +19,91 @@ function App() {
   const [isSkillSearch, setIsSkillSearch] = useState(false);
   const [isFilterSearch, setIsFilterSearch] = useState(false);
 
+  const fetchWithTimeout = (url, options, timeout = 5000) => {
+    return Promise.race([
+      fetch(url, options),
+      new Promise((_, reject) =>
+        setTimeout(() => reject(new Error("Request timed out")), timeout)
+      ),
+    ]);
+  };
+
+  const handleFetchError = (error) => {
+    swal.fire({
+      title: "Error",
+      text: "An error occurred while fetching results",
+      icon: "error",
+    });
+  };
+
+  const fetchAndSetData = async (url, setData) => {
+    try {
+      const response = await fetchWithTimeout(url, {}, 5000);
+      if (!response.ok) {
+        throw new Error("Network response was not ok");
+      }
+      const data = await response.json();
+      setData(data);
+    } catch (error) {
+      handleFetchError(error);
+    }
+  };
+
+  const fetchAndSetCategories = async () => {
+    const url = `${baseUrl}/getCategories`;
+    const setData = (data) =>
+      setCategoriesList(
+        data.map((category) => ({
+          id: category.id,
+          name: category.name,
+        }))
+      );
+    await fetchAndSetData(url, setData);
+  };
+
+  const fetchAndSetLocations = async () => {
+    const url = `${baseUrl}/getLocations`;
+    const setData = (data) => setLocationList(data);
+    await fetchAndSetData(url, setData);
+  };
+
   useEffect(() => {
-    const fetchWithTimeout = (url, options, timeout = 5000) => {
-      return Promise.race([
-        fetch(url, options),
-        new Promise((_, reject) =>
-          setTimeout(() => reject(new Error("Request timed out")), timeout)
-        ),
-      ]);
-    };
-
-    const fetchLocations = async () => {
-      try {
-        const response = await fetchWithTimeout(
-          `${baseUrl}/getLocations`,
-          {},
-          5000
-        );
-        if (!response.ok) {
-          throw new Error("Network response was not ok");
-        }
-        const data = await response.json();
-        setLocationList(data);
-      } catch (error) {
-        swal.fire({
-          title: "Error",
-          text: "An error occurred while fetching results",
-          icon: "error",
-        });
-      }
-    };
-
-    const fetchCategories = async () => {
-      try {
-        const response = await fetchWithTimeout(
-          `${baseUrl}/getCategories`,
-          {},
-          5000
-        );
-        if (!response.ok) {
-          throw new Error("Network response was not ok");
-        }
-        const data = await response.json();
-        setCategoriesList(
-          data.map((category) => ({
-            id: category.id,
-            name: category.name,
-          }))
-        );
-      } catch (error) {
-        swal.fire({
-          title: "Error",
-          text: "An error occurred while fetching results",
-          icon: "error",
-        });
-      }
-    };
-    fetchCategories();
-    fetchLocations();
+    fetchAndSetCategories();
+    fetchAndSetLocations();
   }, []);
   return (
-    <>
-      <div className="w-full max-w-screen-sm  mx-auto">
-        <h1 className="text-3xl font-bold mb-4 text-center text-materialPurple">
-          Find Skills
-        </h1>
-        <div>
-          <SearchBoxComponent
-            setSelectedSkillId={setSelectedSkillId}
-            locationList={locationList}
-            categoriesList={categoriesList}
-            filters={filters}
-            setFilters={setFilters}
-            resultsOpen={resultsOpen}
-            setResultsOpen={setResultsOpen}
-            setIsSkillSearch={setIsSkillSearch}
-            isSkillSearch={isSkillSearch}
-            isFilterSearch={isFilterSearch}
-            setIsFilterSearch={setIsFilterSearch}
-          />
-        </div>
+    <div className="w-full max-w-screen-sm mx-auto">
+      <h1 className="mb-4 text-3xl font-bold text-center text-materialPurple">
+        Find Skills
+      </h1>
+      <div>
+        <SearchBoxComponent
+          setSelectedSkillId={setSelectedSkillId}
+          locationList={locationList}
+          categoriesList={categoriesList}
+          filters={filters}
+          setFilters={setFilters}
+          resultsOpen={resultsOpen}
+          setResultsOpen={setResultsOpen}
+          setIsSkillSearch={setIsSkillSearch}
+          isSkillSearch={isSkillSearch}
+          isFilterSearch={isFilterSearch}
+          setIsFilterSearch={setIsFilterSearch}
+        />
+      </div>
 
-        <div>
-          <img
-            className="my-2 pointer-events-none"
-            src="https://github.com/Jslquintero/test/blob/main/logo.png?raw=true"
-          />
-        </div>
-        <div className="grid grid-cols-1 my-2 z-0">
-          <span className="text-left my-2 text-fontColor">
-            ALL CATEGORIES ({categoriesList.length})
-          </span>
-
-          {!selectedSkillId && (
+      <div className="z-0 grid grid-cols-1 my-2">
+        {!selectedSkillId && (
+          <div>
+            <div>
+              <img
+                className="my-2 pointer-events-none"
+                src="https://github.com/Jslquintero/test/blob/main/logo.png?raw=true"
+              />
+            </div>
+            <span className="my-2 text-left text-fontColor">
+              ALL CATEGORIES ({categoriesList.length})
+            </span>
             <CategoriesComponent
               categoriesList={categoriesList}
               filters={filters}
@@ -119,13 +111,13 @@ function App() {
               setResultsOpen={setResultsOpen}
               setIsSkillSearch={setIsSkillSearch}
             />
-          )}
-        </div>
-        <div>
-          {selectedSkillId && <Details selectedSkillId={selectedSkillId} />}
-        </div>
+          </div>
+        )}
       </div>
-    </>
+      <div>
+        {selectedSkillId && <Details selectedSkillId={selectedSkillId} />}
+      </div>
+    </div>
   );
 }
 
@@ -206,7 +198,7 @@ const SearchBoxComponent = ({
             isFiltersEmpty(filters) ? "hidden" : "block"
           }`}
         >
-          <span className="text-center my-2 text-fontColor">Filters</span>
+          <span className="my-2 text-center text-fontColor">Filters</span>
         </div>
         <div className="flex flex-wrap gap-2">
           <FilterBadge
@@ -306,14 +298,14 @@ const SearchInputComponent = ({
     <div className="relative w-full">
       <input
         type="text"
-        className="w-full border border-gray-300 rounded-md py-2 pr-10 pl-10 focus:outline-none focus:border-neonPink"
+        className="w-full py-2 pl-10 pr-10 border border-gray-300 rounded-md focus:outline-none focus:border-neonPink"
         value={searchText}
         onChange={handleSearch}
         onClick={handleInputClick}
         onBlur={handleInputBlur}
-        placeholder="Search skills. Type at least 3 letters"
+        placeholder="Search skills"
       />
-      <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">
+      <div className="absolute text-gray-500 transform -translate-y-1/2 left-3 top-1/2">
         <svg
           className="w-4 h-4 text-neonPink"
           fill="none"
@@ -333,7 +325,7 @@ const SearchInputComponent = ({
         <button
           type="button"
           onClick={handleClear}
-          className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-neonPink focus:outline-none"
+          className="absolute text-gray-500 transform -translate-y-1/2 right-3 top-1/2 hover:text-neonPink focus:outline-none"
         >
           <svg
             className="w-4 h-4 text-neonPink"
@@ -372,6 +364,7 @@ const SearchResults = ({
 
   useEffect(() => {
     const controller = new AbortController();
+    let isMounted = true;
 
     const fetchResults = async (searchText) => {
       setLoading(true);
@@ -392,10 +385,12 @@ const SearchResults = ({
             "Content-Type": "application/json",
           },
           body: JSON.stringify(requestBody),
-          signal: controller.signal,
+          // signal: controller.signal,
         });
         const data = await response.json();
-        setResults(data);
+        if (isMounted) {
+          setResults(data);
+        }
       } catch (error) {
         console.error("Error:", error);
         swal.fire({
@@ -414,9 +409,10 @@ const SearchResults = ({
       fetchResults(debouncedSearchText);
     }
 
-    return () => controller.abort();
+    return () => {
+      controller.abort();
+    };
   }, [debouncedSearchText, filters, isSkillSearch, isFilterSearch]);
-
   const handleClick = (id) => {
     setSelectedSkillId(id);
     setResultsOpen(false);
@@ -438,12 +434,11 @@ const SearchResults = ({
   return (
     <div
       ref={resultsRef}
-      className="-mt-3 w-full bg-white rounded-md shadow-lg mt-2 max-h-96 z-10 absolute w-full"
+      className="absolute z-10 w-full mt-2 -mt-3 bg-white rounded-md shadow-lg max-h-96"
       style={{
         overflowY: "scroll",
-        scrollbarWidth: "none",
-        scrollbarColor: "#FD3BB0 transparent",
         scrollbarWidth: "thin",
+        scrollbarColor: "#FD3BB0 transparent",
       }}
     >
       <div className="w-full">
@@ -452,7 +447,7 @@ const SearchResults = ({
             (searchText || isSkillSearch || isFilterSearch) && (
               <div
                 key={index}
-                className="grid grid-cols-4 gap-4 cursor-pointer hover:bg-gray-200 text-fontColor hover:text-neonPink p-2"
+                className="grid grid-cols-4 gap-4 p-2 cursor-pointer hover:bg-gray-200 text-fontColor hover:text-neonPink"
                 onClick={() => {
                   handleClick(item.id);
                 }}
@@ -461,10 +456,10 @@ const SearchResults = ({
                   <img
                     src={item.image}
                     alt="Result"
-                    className="w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20 object-cover rounded-full"
+                    className="object-cover rounded-full w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20"
                   />
                 </div>
-                <div className="col-span-3 flex items-center justify-between text-xs md:text-xl">
+                <div className="flex items-center justify-between col-span-3 text-xs md:text-xl">
                   <span>{item.name}</span>
                   <i className="fa-solid fa-chevron-right"></i>
                 </div>
@@ -472,15 +467,15 @@ const SearchResults = ({
             )
         )}
       </div>
-      <div className="text-center text-neonPink mt-4">
+      <div className="mt-4 text-center text-neonPink">
         {loading ? (
           <div className="animate-pulse">
-            <i className="fas fa-spinner fa-spin text-xl"></i>
+            <i className="text-xl fas fa-spinner fa-spin"></i>
             <p>Loading...</p>
           </div>
         ) : results.length === 0 ? (
           <div>
-            <i className="fas fa-exclamation-circle text-xl"></i>
+            <i className="text-xl fas fa-exclamation-circle"></i>
             <p>
               No skills found based on your search. Try adjusting your filters.
             </p>
@@ -525,8 +520,7 @@ const FilterComponent = ({
       location: "",
       category: "",
       rate: "",
-      deliveryInPerson: false,
-      deliveryOnline: false,
+      selectedDeliveryOption: [],
       minPrice: "",
       maxPrice: "",
     });
@@ -538,6 +532,10 @@ const FilterComponent = ({
   };
 
   const handleDone = () => {
+    // const hasFilters = Object.values(filters).some(
+    //   (value) => value !== "" && !(Array.isArray(value) && value.length === 0)
+    // );
+
     setSelectedFilter(null);
     setIsModalOpened(false);
     setIsFilterSearch(true);
@@ -548,7 +546,7 @@ const FilterComponent = ({
     <>
       <button
         type="button"
-        className="flex justify-between items-center w-full border bg-neonPink text-white border-gray-300 rounded-md py-2 px-4 focus:outline-none focus:border-gray-300"
+        className="flex items-center justify-between w-full px-4 py-2 text-white border border-gray-300 rounded-md bg-neonPink focus:outline-none focus:border-gray-300"
         onClick={showModal}
       >
         <span>Filter</span>
@@ -556,30 +554,30 @@ const FilterComponent = ({
       </button>
 
       {isModalOpened && (
-        <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex justify-center items-center z-20">
-          <div className="bg-white rounded-lg p-6 w-full max-w-lg">
-            <div className="flex justify-between items-center mb-4">
-              <a
+        <div className="fixed inset-0 z-20 flex items-center justify-center bg-gray-500 bg-opacity-75">
+          <div className="w-full max-w-lg p-6 bg-white rounded-lg">
+            <div className="flex items-center justify-between mb-4">
+              <button
                 type="button"
-                className="text-materialPurple cursor-pointer"
+                className="cursor-pointer text-materialPurple"
                 onClick={handleBack}
               >
                 {selectedFilter && (
                   <i className="fa-solid fa-chevron-left text-neonPink"></i>
                 )}
-              </a>
+              </button>
               <h2 className="text-lg font-semibold text-materialPurple">
                 {filterName}
               </h2>
               <div className="flex space-x-4 font-bold">
                 <button
                   type="button"
-                  className="text-neonPink text-lg"
+                  className="text-lg text-neonPink"
                   onClick={handleReset}
                 >
                   Reset
                 </button>
-                <button className="text-neonPink text-lg" onClick={handleDone}>
+                <button className="text-lg text-neonPink" onClick={handleDone}>
                   Done
                 </button>
               </div>
@@ -609,17 +607,17 @@ const FilterComponent = ({
                   )}
                 </div>
               ) : (
-                <div>
-                  {options.map((option, index) => (
+                <div className="grid grid-cols-1 text-left">
+                  {options.map((option) => (
                     <>
-                      <a
-                        key={index}
-                        className="flex justify-between py-3 block text-lg text-materialPurple w-full max-w-lg cursor-pointer hover:bg-gray-100 transition-colors duration-200"
+                      <button
+                        type="button"
+                        className="flex justify-between block w-full max-w-lg py-3 text-lg text-left transition-colors duration-200 cursor-pointer text-materialPurple hover:bg-gray-100"
                         onClick={() => handleFilterSelect(option.label)}
                       >
                         <span className="flex-grow mx-2">{option.label}</span>
                         <i className="fa-solid fa-chevron-right text-neonPink"></i>
-                      </a>
+                      </button>
                       <hr className="bg-materialPurple" />
                     </>
                   ))}
@@ -655,7 +653,7 @@ const LocationFilter = ({ filters, setFilters, locationList }) => {
 
   return (
     <div
-      className="max-h-128 overflow-y-scroll"
+      className="overflow-y-scroll max-h-128"
       style={{
         scrollbarWidth: "none",
         scrollbarColor: "transparent transparent",
@@ -672,7 +670,7 @@ const LocationFilter = ({ filters, setFilters, locationList }) => {
               e.preventDefault();
               handleFilterSelect(item);
             }}
-            className="flex justify-between py-3 text-lg text-materialPurple w-full max-w-xl cursor-pointer hover:bg-gray-100 transition-colors duration-200"
+            className="flex justify-between w-full max-w-xl py-3 text-lg transition-colors duration-200 cursor-pointer text-materialPurple hover:bg-gray-100"
           >
             {item.city}
             <span className="float-right text-white">
@@ -710,7 +708,7 @@ const CategoryFilter = ({ filters, setFilters, categoriesList }) => {
 
   return (
     <div
-      className="max-h-128 overflow-y-scroll"
+      className="overflow-y-scroll max-h-128"
       style={{
         scrollbarColor: "#FD3BB0 transparent",
         scrollbarWidth: "thin",
@@ -724,7 +722,7 @@ const CategoryFilter = ({ filters, setFilters, categoriesList }) => {
             key={item.id}
             className="grid grid-cols-[10%,auto] gap-5 my-6 cursor-pointer hover:bg-gray-100 transition-colors duration-200"
           >
-            <div className="rounded-full mx-1 my-2 bg-opaquePink flex justify-center items-center w-10 h-10 mt-1">
+            <div className="flex items-center justify-center w-10 h-10 mx-1 my-2 mt-1 rounded-full bg-opaquePink">
               <svg
                 className="w-5"
                 viewBox="0 0 30 35"
@@ -741,7 +739,7 @@ const CategoryFilter = ({ filters, setFilters, categoriesList }) => {
             </div>
             <button
               onClick={() => handleFilterSelect(item)}
-              className="flex justify-between py-3 px-2 text-lg text-materialPurple w-full max-w-xl"
+              className="flex justify-between w-full max-w-xl px-2 py-3 text-lg text-materialPurple"
             >
               {item.name}
               <span className="float-right text-white">
@@ -1075,28 +1073,28 @@ const Details = ({ selectedSkillId }) => {
 
   if (loading) {
     return (
-      <div className="w-full mx-auto z-10 animate-pulse">
-        <div className="grid md:grid-cols-2 items-start max-w-3xl gap-6 mx-auto px-4 py-6">
+      <div className="z-10 w-full mx-auto animate-pulse">
+        <div className="grid items-start max-w-3xl gap-6 px-4 py-6 mx-auto md:grid-cols-2">
           <div className="flex flex-col gap-4">
-            <h1 className="text-3xl font-extrabold bg-gray-300 h-8 rounded"></h1>
+            <h1 className="h-8 text-3xl font-extrabold bg-gray-300 rounded"></h1>
             <div className="flex flex-col gap-2 text-sm leading-loose ">
               <div className="flex flex-col gap-2 text-sm leading-loose">
-                <p className="text-materialPurple font-extrabold text-lg bg-gray-300 h-6 rounded"></p>
+                <p className="h-6 text-lg font-extrabold bg-gray-300 rounded text-materialPurple"></p>
               </div>
             </div>
           </div>
           <div className="grid grid-cols-4 gap-4">
             <div className="col-span-4 sm:col-span-4">
-              <div className="aspect-square ml-3 rounded-lg bg-gray-300"></div>
+              <div className="ml-3 bg-gray-300 rounded-lg aspect-square"></div>
             </div>
             <div className="col-span-4 sm:col-span-1">
-              <div className="aspect-square ml-3 rounded-lg bg-gray-300"></div>
+              <div className="ml-3 bg-gray-300 rounded-lg aspect-square"></div>
             </div>
             <div className="col-span-4 sm:col-span-1">
-              <div className="aspect-square ml-3 rounded-lg bg-gray-300"></div>
+              <div className="ml-3 bg-gray-300 rounded-lg aspect-square"></div>
             </div>
             <div className="col-span-4 sm:col-span-1">
-              <div className="aspect-square ml-3 rounded-lg bg-gray-300"></div>
+              <div className="ml-3 bg-gray-300 rounded-lg aspect-square"></div>
             </div>
           </div>
         </div>
@@ -1105,26 +1103,26 @@ const Details = ({ selectedSkillId }) => {
   }
 
   return (
-    <div className="w-full mx-auto z-10">
+    <div className="z-10 w-full mx-auto">
       <div className="grid grid-rows-2">
-        <div className="grid md:grid-cols-2 items-start max-w-5xl gap-6 mx-auto px-4 py-6">
+        <div className="grid items-start max-w-5xl gap-6 px-4 py-6 mx-auto md:grid-cols-2">
           <div className="flex flex-col gap-4">
             <h1 className="text-3xl font-extrabold text-materialPurple">
               {category.name}
             </h1>
             <div className="flex flex-col gap-2 text-sm leading-loose ">
               <div className="flex flex-col gap-2 text-sm leading-loose">
-                <p className="text-materialPurple font-extrabold text-lg">
+                <p className="text-lg font-extrabold text-materialPurple">
                   {name}
                 </p>
               </div>
 
-              <div className="flex flex-col gap-2 text-sm leading-loose mt-10">
-                <span className="text-materialPurple font-extrabold text-xl">
+              <div className="flex flex-col gap-2 mt-10 text-sm leading-loose">
+                <span className="text-xl font-extrabold text-materialPurple">
                   Pricing from
                 </span>
                 <p className="text-lg text-materialPurple">
-                  <span className="text-materialPurple font-extrabold text-xl">
+                  <span className="text-xl font-extrabold text-materialPurple">
                     $ {amount + " "}
                   </span>
                   {rate.replace(/_/g, " ")}
@@ -1135,7 +1133,7 @@ const Details = ({ selectedSkillId }) => {
 
             <div>
               <div className="flex flex-col gap-2 text-sm leading-loose">
-                <span className="text-materialPurple font-extrabold text-xl">
+                <span className="text-xl font-extrabold text-materialPurple">
                   Duration
                 </span>
                 <p className="text-lg text-materialPurple">
@@ -1144,7 +1142,7 @@ const Details = ({ selectedSkillId }) => {
               </div>
 
               <div className="flex flex-col gap-2 text-sm leading-loose">
-                <span className="text-materialPurple font-extrabold text-xl">
+                <span className="text-xl font-extrabold text-materialPurple">
                   Online
                 </span>
                 <p className="text-lg text-materialPurple">
@@ -1153,7 +1151,7 @@ const Details = ({ selectedSkillId }) => {
               </div>
 
               <div className="flex flex-col gap-2 text-sm leading-loose">
-                <span className="text-materialPurple font-extrabold text-xl">
+                <span className="text-xl font-extrabold text-materialPurple">
                   In person
                 </span>
                 <p className="text-lg text-materialPurple">
@@ -1166,7 +1164,7 @@ const Details = ({ selectedSkillId }) => {
             <div className="col-span-4">
               <img
                 alt="primaryImage"
-                className="aspect-square ml-3 rounded-lg w-full overflow-hidden shadow-lg"
+                className="w-full ml-3 overflow-hidden rounded-lg shadow-lg aspect-square"
                 height="600"
                 src={imageUrls[currentImageIndex]}
                 width="600"
@@ -1177,7 +1175,7 @@ const Details = ({ selectedSkillId }) => {
               <div className="col-span-1 sm:col-span-1" key={index}>
                 <img
                   alt="otherImage"
-                  className="aspect-square ml-3 rounded-lg w-full overflow-hidden cursor-pointer shadow-lg"
+                  className="w-full ml-3 overflow-hidden rounded-lg shadow-lg cursor-pointer aspect-square"
                   height="100"
                   src={image}
                   width="100"
@@ -1191,7 +1189,7 @@ const Details = ({ selectedSkillId }) => {
         </div>
         <div>
           <hr className="border-materialPurpleOpaque" />
-          <div className="grid grid-cols-auto gap-4">
+          <div className="grid gap-4 grid-cols-auto">
             <h2 className="text-lg font-extrabold text-materialPurple">
               Description
             </h2>
@@ -1230,7 +1228,7 @@ const CategoriesComponent = ({
 
   return (
     <div
-      className="max-h-128 overflow-y-scroll"
+      className="overflow-y-scroll max-h-128"
       style={{
         scrollbarColor: "#FD3BB0 transparent",
         scrollbarWidth: "thin",
@@ -1244,7 +1242,7 @@ const CategoriesComponent = ({
             key={item.id}
             className="grid grid-cols-[10%,auto] gap-5 my-6 cursor-pointer hover:bg-gray-100 transition-colors duration-200"
           >
-            <div className="rounded-full mx-1 my-2 bg-opaquePink flex justify-center items-center w-10 h-10 mt-1">
+            <div className="flex items-center justify-center w-10 h-10 mx-1 my-2 mt-1 rounded-full bg-opaquePink">
               <svg
                 className="w-5"
                 viewBox="0 0 30 35"
@@ -1261,7 +1259,7 @@ const CategoriesComponent = ({
             </div>
             <button
               onClick={() => handleFilterSelect(item)}
-              className="flex justify-between py-3 px-2 text-lg text-materialPurple w-full max-w-xl"
+              className="flex justify-between w-full max-w-xl px-2 py-3 text-lg text-materialPurple"
             >
               {item.name}
               <span className="float-right text-white">
